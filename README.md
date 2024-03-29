@@ -1,3 +1,3 @@
 # buddy_client_side
 
-A new Flutter project.
+Local guide flutter app
