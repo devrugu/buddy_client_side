@@ -43,6 +43,7 @@ class LoginScreenState extends State<LoginScreen> {
         // Eksik profil bilgilerini kontrol etme ve yönlendirme
         if (responseData['profile_status'] == true) {
           // Profil tam ise ana sayfaya yönlendir
+          // TODO: Ana sayfa ekranına yönlendirme yapılacak
           /* Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => HomePage())); */
         } else {
@@ -104,76 +105,141 @@ class LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Theming for text fields to match the app's overall aesthetic
+    final InputDecoration textFieldDecoration = InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25.0),
+      ),
+      filled: true,
+      fillColor: Colors.white.withAlpha(235),
+      labelStyle: TextStyle(color: Colors.blue.shade600),
+    );
+
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            // Logo image
-            Image.asset(
-              'assets/images/Logo.png',
-              height: 300,
-            ),
-            const SizedBox(height: 48),
-            // Email/Username input field
-            TextFormField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
+      body: SingleChildScrollView(
+        // Wrap with SingleChildScrollView to avoid overflow when keyboard is visible
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // Logo image
+              Image.asset(
+                'assets/images/Logo2.png', // Make sure this path is correct
+                height:
+                    200, // Adjusted size to provide more space for other elements
               ),
-            ),
-            const SizedBox(height: 16),
-            // Password input field
-            TextFormField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
+              const SizedBox(height: 48),
+              // Username input field
+              TextFormField(
+                controller: _usernameController,
+                cursorColor: Colors.blue.shade600, // İmleç rengini ayarlar
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(
+                    // Normal durumda görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Colors.green), // Sınır rengini ayarlar
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    // Odaklanılmadığında görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(
+                            255, 0, 0, 0)), // Sınır rengini ayarlar
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    // Odaklanıldığında görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Colors.blueAccent), // Sınır rengini ayarlar
+                  ),
+                  fillColor: Colors.white.withAlpha(235), // Arka plan rengi
+                  filled: true, // Arka plan renginin görünür olmasını sağlar
+                  labelStyle: TextStyle(
+                      color: Colors.blue.shade600), // Etiket metni stili
+                ),
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            // Forgot password button/text
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle forgot password
-                },
-                child: const Text('Forgot Password?'),
+              const SizedBox(height: 16),
+              // Password input field
+              TextFormField(
+                controller: _passwordController,
+                cursorColor: Colors.blue.shade600, // İmleç rengini ayarlar
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
+                    // Normal durumda görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Colors.green), // Sınır rengini ayarlar
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    // Odaklanılmadığında görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(
+                            255, 0, 0, 0)), // Sınır rengini ayarlar
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    // Odaklanıldığında görünen sınır
+                    borderRadius: BorderRadius.circular(25.0),
+                    borderSide: const BorderSide(
+                        color: Colors.blueAccent), // Sınır rengini ayarlar
+                  ),
+                  fillColor: Colors.white.withAlpha(235), // Arka plan rengi
+                  filled: true, // Arka plan renginin görünür olmasını sağlar
+                  labelStyle: TextStyle(
+                      color: Colors.blue.shade600), // Etiket metni stili
+                ),
+                obscureText: true, // Ensure password is obscured
               ),
-            ),
-            const SizedBox(height: 32),
-            // Login button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50.0),
-              child: CustomButton(
+              const SizedBox(height: 16),
+              // Forgot password button/text
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    // TODO: Implement forgot password functionality
+                  },
+                  child: const Text('Forgot Password?',
+                      style: TextStyle(color: Colors.blueGrey)),
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Login button
+              CustomButton(
                 text: 'Login',
                 onPressed: () {
-                  // Get the values from the input fields
                   final username = _usernameController.text;
                   final password = _passwordController.text;
-                  loginUser(username, password);
+                  loginUser(username, password); // loginUser function call
                 },
+                color: Colors.blue.shade600,
+                textStyle: const TextStyle(
+                    color: Colors.white), // Text style for the button
               ),
-            ),
-            const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.center,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => WelcomeScreen(key: UniqueKey())),
-                  );
-                },
-                child: const Text('Back to Welcome Screen'),
+              const SizedBox(height: 32),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      // Use pushReplacement to avoid building a stack of screens
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              WelcomeScreen(key: UniqueKey())),
+                    );
+                  },
+                  child: const Text('Back to Welcome Screen',
+                      style: TextStyle(color: Colors.blueGrey)),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

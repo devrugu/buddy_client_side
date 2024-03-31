@@ -1,7 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'other_informations_screen.dart';
 
 class ActivitiesAndInterestsScreen extends StatefulWidget {
   final dynamic missingInfo;
@@ -70,8 +74,8 @@ class ActivitiesAndInterestsScreenState
 
   Future<void> submitSelections() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token =
-        prefs.getString('jwt_token'); // Assuming it's stored with this key
+    String? token = prefs
+        .getString('jwt_token'); // Get the JWT token from SharedPreferences
 
     var url = Uri.parse(
         'http://192.168.1.86/buddy-backend/user/save_activites_and_interests.php');
@@ -121,39 +125,35 @@ class ActivitiesAndInterestsScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Complete Your Profile'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).primaryColor,
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      "Let's complete your profile!",
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(color: Colors.deepPurple),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  buildActivitiesSection(),
-                  buildInterestsAutocomplete(),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Submit your data
-                      submitSelections();
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple),
-                    child: const Text('Submit'),
-                  ),
-                ],
-              ),
+          : buildMainContent(context),
+    );
+  }
+
+  Widget buildMainContent(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "Let's complete your profile!",
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(color: Theme.of(context).primaryColor),
+              textAlign: TextAlign.center,
             ),
+          ),
+          buildActivitiesSection(),
+          buildInterestsAutocomplete(),
+          buildButtons(context),
+        ],
+      ),
     );
   }
 
@@ -177,7 +177,10 @@ class ActivitiesAndInterestsScreenState
             elevation: 4,
             margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: ExpansionTile(
-              title: Text(category['category_name']),
+              backgroundColor: const Color.fromARGB(255, 47, 137, 228),
+              title: Text(category['category_name'],
+                  style: const TextStyle(
+                      color: Color.fromARGB(255, 47, 137, 228))),
               children: List<Widget>.from(
                 category['activities'].map<Widget>((activity) {
                   return CheckboxListTile(
@@ -189,7 +192,8 @@ class ActivitiesAndInterestsScreenState
                             value!;
                       });
                     },
-                    title: Text(activity['activity_name']),
+                    title: Text(activity['activity_name'],
+                        style: const TextStyle(color: Colors.white)),
                   );
                 }).toList(),
               ),
@@ -273,5 +277,50 @@ class ActivitiesAndInterestsScreenState
         ),
       ],
     );
+  }
+
+  Widget buildButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: submitSelectionsAndNavigate,
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            child: const Text('Save and Continue'),
+          ),
+          ElevatedButton(
+            onPressed: navigateToNextOrHomeScreen,
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            child: const Text('Skip'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void submitSelectionsAndNavigate() {
+    submitSelections();
+    navigateToNextOrHomeScreen();
+  }
+
+  void navigateToNextOrHomeScreen() {
+    if (widget.missingInfo.contains('educationlevels') ||
+        widget.missingInfo.contains('languages') ||
+        widget.missingInfo.contains('locations') ||
+        widget.missingInfo.contains('professions')) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) =>
+              OtherInformationsScreen(missingInfo: widget.missingInfo)));
+    } else {
+      // TODO: Navigate to the home page
+    }
   }
 }

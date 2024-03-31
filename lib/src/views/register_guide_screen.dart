@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:email_validator/email_validator.dart';
+import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../widgets/custom_text_form_field.dart';
@@ -143,12 +144,8 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register as Guide'),
-        backgroundColor: const Color(0xff77d2f6),
-        iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0466C8)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        backgroundColor:
+            Theme.of(context).primaryColor, // Ensuring consistent color use
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -206,9 +203,11 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
               child: AbsorbPointer(
                 child: CustomTextFormField(
                   controller: TextEditingController(
-                      text: _selectedDate == null
-                          ? 'Select your date of birth'
-                          : "${_selectedDate!.toLocal()}".split(' ')[0]),
+                    text: _selectedDate == null
+                        ? 'Select your date of birth'
+                        : DateFormat('yyyy-MM-dd').format(
+                            _selectedDate!), // Using DateFormat for consistent formatting
+                  ),
                   labelText: 'Date of Birth',
                   hintText: 'Enter your date of birth',
                 ),
@@ -236,6 +235,8 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
             CustomButton(
               text: 'Register',
               onPressed: _register,
+              textStyle: const TextStyle(
+                  color: Colors.white), // Adding a consistent text style
             ),
           ],
         ),

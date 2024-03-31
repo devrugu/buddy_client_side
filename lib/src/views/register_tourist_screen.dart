@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:email_validator/email_validator.dart';
+import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../widgets/custom_text_form_field.dart';
@@ -144,15 +145,12 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Use the theme's color scheme and styling to match your app's look and feel
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register as Tourist'),
-        backgroundColor: const Color(0xff77d2f6),
-        iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0466C8)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        backgroundColor:
+            Colors.blue.shade800, // Adjusted to use theme's color scheme
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -206,13 +204,15 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
                   controller: TextEditingController(
                       text: _selectedDate == null
                           ? 'Select your date of birth'
-                          : "${_selectedDate!.toLocal()}".split(' ')[0]),
+                          : DateFormat('yyyy-MM-dd').format(
+                              _selectedDate!)), // Using DateFormat for consistent formatting
                   labelText: 'Date of Birth',
                   hintText: 'Enter your date of birth',
                 ),
               ),
             ),
             const SizedBox(height: 16),
+            // Dropdown for countries with consistent styling
             DropdownButtonFormField<String>(
               value: _selectedCountry,
               items: _countries.map((String value) {
@@ -228,12 +228,18 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
               },
               decoration: const InputDecoration(
                 labelText: 'Country',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                ),
               ),
             ),
             const SizedBox(height: 24),
+            // Register button
             CustomButton(
               text: 'Register',
               onPressed: _register,
+              textStyle: const TextStyle(
+                  color: Colors.white), // Use a consistent text style
             ),
           ],
         ),
