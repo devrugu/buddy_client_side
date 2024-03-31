@@ -541,7 +541,12 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton(
-          onPressed: submitSelections,
+          onPressed: () {
+            {
+              submitSelections();
+              // TODO: Redirect to the home page
+            }
+          },
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: const Color.fromARGB(255, 47, 137, 228),

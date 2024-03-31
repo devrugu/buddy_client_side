@@ -20,8 +20,9 @@ class RegisterTouristScreen extends StatefulWidget {
 }
 
 class RegisterTouristScreenState extends State<RegisterTouristScreen> {
+  // Initialization of the mask formatter for the phone number, adjusted for Turkish phone number format
   final phoneMaskFormatter = MaskTextInputFormatter(
-    mask: '+## (###) ###-##-##',
+    mask: '### ### ## ##', // Mask format for the user-entered digits
     filter: {"#": RegExp(r'[0-9]')},
   );
   final TextEditingController _nameController = TextEditingController();
@@ -38,6 +39,8 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
   void initState() {
     super.initState();
     _fetchCountries();
+    // Telefon numarası için başlangıç değeri olarak '+90 ' ekleyin
+    _phoneNumberController.text = '+90 ';
   }
 
   Future<void> _fetchCountries() async {
@@ -82,7 +85,7 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
   }
 
   bool _isValidPhoneNumber(String phone) {
-    RegExp phoneExp = RegExp(r'^\+\d+\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}$');
+    RegExp phoneExp = RegExp(r'^\d{3}\s\d{3}\s\d{2}\s\d{2}$');
     return phoneExp.hasMatch(phone);
   }
 
@@ -117,7 +120,7 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
         'username': _usernameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
-        'phoneNumber': _phoneNumberController.text,
+        'phoneNumber': '+90 ${_phoneNumberController.text}',
         'dateOfBirth': _selectedDate?.toIso8601String().split('T')[0],
         'country': _selectedCountry,
       });

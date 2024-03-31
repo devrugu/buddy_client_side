@@ -149,8 +149,10 @@ class ActivitiesAndInterestsScreenState
               textAlign: TextAlign.center,
             ),
           ),
-          buildActivitiesSection(),
-          buildInterestsAutocomplete(),
+          if (widget.missingInfo.contains('activities'))
+            buildActivitiesSection(),
+          if (widget.missingInfo.contains('interests'))
+            buildInterestsAutocomplete(),
           buildButtons(context),
         ],
       ),
