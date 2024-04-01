@@ -22,7 +22,8 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    const url = 'http://192.168.1.86/buddy-backend/user/login.php';
+    const url =
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/login.php';
     final response = await http.post(
       Uri.parse(url),
       body: {

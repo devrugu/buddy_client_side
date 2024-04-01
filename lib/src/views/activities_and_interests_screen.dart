@@ -41,7 +41,8 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchActivities() async {
-    const url = 'http://192.168.1.86/buddy-backend/general/activities.php';
+    const url =
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/activities.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedCategories = json.decode(response.body);
@@ -60,7 +61,8 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchInterests() async {
-    const url = 'http://192.168.1.86/buddy-backend/general/interests.php';
+    const url =
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/interests.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedInterests = json.decode(response.body);
@@ -78,7 +80,7 @@ class ActivitiesAndInterestsScreenState
         .getString('jwt_token'); // Get the JWT token from SharedPreferences
 
     var url = Uri.parse(
-        'http://192.168.1.86/buddy-backend/user/save_activites_and_interests.php');
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/save_activites_and_interests.php');
 
     // Convert the selected activities and interests to JSON
     var requestBody = jsonEncode({

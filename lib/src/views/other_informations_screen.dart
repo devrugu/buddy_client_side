@@ -42,7 +42,7 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
   Future<void> fetchEducationLevels() async {
     final response = await http.get(Uri.parse(
-        'http://192.168.1.86/buddy-backend/general/education_levels.php'));
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/education_levels.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -55,8 +55,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLanguages() async {
-    final response = await http.get(
-        Uri.parse('http://192.168.1.86/buddy-backend/general/languages.php'));
+    final response = await http.get(Uri.parse(
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/languages.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -69,8 +69,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLocations() async {
-    final response = await http.get(
-        Uri.parse('http://192.168.1.86/buddy-backend/general/locations.php'));
+    final response = await http.get(Uri.parse(
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/locations.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -83,8 +83,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
   // Meslekleri çeken fonksiyon
   Future<void> fetchProfessions() async {
-    final response = await http.get(
-        Uri.parse('http://192.168.1.86/buddy-backend/general/professions.php'));
+    final response = await http.get(Uri.parse(
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/professions.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -572,7 +572,7 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
     String? token = prefs.getString('jwt_token'); // JWT token
 
     var url = Uri.parse(
-        'http://192.168.1.86/buddy-backend/user/save_other_informations.php');
+        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/save_other_informations.php');
 
     // Seçilen verilerin JSON formatında hazırlanması
     var requestBody = jsonEncode({

@@ -21,7 +21,7 @@ class RegisterGuideScreen extends StatefulWidget {
 
 class RegisterGuideScreenState extends State<RegisterGuideScreen> {
   final phoneMaskFormatter = MaskTextInputFormatter(
-    mask: '+## (###) ###-##-##',
+    mask: '### ### ## ##', // Mask format for the user-entered digits
     filter: {"#": RegExp(r'[0-9]')},
   );
   final TextEditingController _nameController = TextEditingController();
@@ -39,12 +39,14 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
   void initState() {
     super.initState();
     _fetchCountries();
+    // Telefon numarası için başlangıç değeri olarak '+90 ' ekleyin
+    //_phoneNumberController.text = '+90 ';
   }
 
   Future<void> _fetchCountries() async {
     try {
-      var url =
-          Uri.parse('http://192.168.1.86/buddy-backend/general/countries.php');
+      var url = Uri.parse(
+          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/countries.php');
       var response = await http.get(url);
       if (response.statusCode == 200) {
         setState(() {
@@ -83,7 +85,7 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
   }
 
   bool _isValidPhoneNumber(String phone) {
-    RegExp phoneExp = RegExp(r'^\+\d+\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}$');
+    RegExp phoneExp = RegExp(r'^\d{3}\s\d{3}\s\d{2}\s\d{2}$');
     return phoneExp.hasMatch(phone);
   }
 
@@ -104,14 +106,14 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
 
     try {
       var url = Uri.parse(
-          'http://192.168.1.86/buddy-backend/user/guide/register_guide.php');
+          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/guide/register_guide.php');
       var response = await http.post(url, body: {
         'name': _nameController.text,
         'surname': _surnameController.text,
         'username': _usernameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
-        'phoneNumber': _phoneNumberController.text,
+        'phoneNumber': '+90 ${_phoneNumberController.text}',
         'dateOfBirth': _selectedDate?.toIso8601String().split('T')[0],
         'country': _selectedCountry,
         'tcNo': _tcNoController.text,
