@@ -40,13 +40,13 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
     super.initState();
     _fetchCountries();
     // Telefon numarası için başlangıç değeri olarak '+90 ' ekleyin
-    _phoneNumberController.text = '+90 ';
+    //_phoneNumberController.text = '+90 ';
   }
 
   Future<void> _fetchCountries() async {
     try {
-      var url =
-          Uri.parse('http://192.168.1.86/buddy-backend/general/countries.php');
+      var url = Uri.parse(
+          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/countries.php');
       var response = await http.get(url);
       if (response.statusCode == 200) {
         setState(() {
@@ -113,7 +113,7 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
 
     try {
       var url = Uri.parse(
-          'http://192.168.1.86/buddy-backend/user/tourist/register_tourist.php');
+          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/tourist/register_tourist.php');
       var response = await http.post(url, body: {
         'name': _nameController.text,
         'surname': _surnameController.text,
