@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/custom_button.dart';
+import '../widgets/warning_messages.dart';
 import 'welcome_screen.dart';
 import 'activities_and_interests_screen.dart';
 import 'other_informations_screen.dart';
@@ -36,24 +37,17 @@ class LoginScreenState extends State<LoginScreen> {
         json.decode(response.body); // Response'u JSON olarak decode edin.
 
     if (response.statusCode == 200) {
-      if (responseData['status'] == 'success') {
+      if (!responseData['error']) {
         // Giriş başarılı durumu
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', responseData['token']);
 
         // Eksik profil bilgilerini kontrol etme ve yönlendirme
-        if (responseData['profile_status'] == true) {
+        if (responseData['profile_status']) {
           // Profil tam ise ana sayfaya yönlendir
           // TODO: Ana sayfa ekranına yönlendirme yapılacak
-          /* Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => HomePage())); */
         } else {
-          /*  eksik bilgilerden activities veya interests 
-              eksikse ActivitiesAndInterestsScreen
-              sayfasına yönlendir. diğer bilgilerden herhangi biri eksikse 
-              OtherInformationsScreen
-              sayfasına yönlendir.
-          */
+          // Eksik profil bilgileri varsa ilgili ekranlara yönlendir
           dynamic missingInfo = responseData['missing_info'];
           if (missingInfo.contains('activities') ||
               missingInfo.contains('interests')) {
@@ -63,44 +57,18 @@ class LoginScreenState extends State<LoginScreen> {
             ));
           } else {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => OtherInformationsScreen(
-                    missingInfo: responseData['missing_info'])));
+                builder: (context) =>
+                    OtherInformationsScreen(missingInfo: missingInfo)));
           }
         }
       } else {
         // Hata durumu (Kullanıcı adı bulunamadı veya şifre yanlış)
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(responseData['message']),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Try Again'),
-                ),
-              ],
-            );
-          },
-        );
+        WarningMessages.error(context, responseData['message']);
       }
     } else {
       // Sunucu tarafında bir hata oluştu
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('An error occurred. Please try again later.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      WarningMessages.error(
+          context, 'An error occurred. Please try again later.');
     }
   }
 

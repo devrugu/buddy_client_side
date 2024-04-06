@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'other_informations_screen.dart';
+import '../widgets/warning_messages.dart';
 
 class ActivitiesAndInterestsScreen extends StatefulWidget {
   final dynamic missingInfo;
@@ -76,13 +77,11 @@ class ActivitiesAndInterestsScreenState
 
   Future<void> submitSelections() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs
-        .getString('jwt_token'); // Get the JWT token from SharedPreferences
+    String? token = prefs.getString('jwt_token');
 
     var url = Uri.parse(
         'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/save_activites_and_interests.php');
 
-    // Convert the selected activities and interests to JSON
     var requestBody = jsonEncode({
       'selectedActivities': selectedActivities.keys
           .where((key) => selectedActivities[key]!)
@@ -100,25 +99,20 @@ class ActivitiesAndInterestsScreenState
         body: requestBody,
       );
 
-      if (response.statusCode == 200) {
-        // Successfully reached the server and got a response
-        print("Response from server: ${response.body}");
+      var decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
 
-        // Optionally, parse the response body to a Dart object
-        var decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
-
-        // Use decodedResponse['status'], decodedResponse['message'], etc...
-        if (decodedResponse['status'] == 'error') {
-          print("Error from server: ${decodedResponse['message']}");
-        }
+      if (decodedResponse['status'] == 'success') {
+        // İşlem başarılı olduğunda kullanıcıyı bilgilendir
+        WarningMessages.success(context, decodedResponse['message']);
+        navigateToNextOrHomeScreen();
       } else {
-        // The server responded with a status code other than 200
-        print(
-            "Failed to submit selections: Server responded with status code ${response.statusCode}");
+        // İşlem başarısız olduğunda kullanıcıya hata mesajını göster
+        WarningMessages.error(
+            context, decodedResponse['message'] ?? 'An error occurred.');
       }
     } catch (e) {
-      // An error occurred while sending the HTTP request
-      print("HTTP request failed: $e");
+      WarningMessages.error(
+          context, 'An error occurred. Please try again later.');
     }
   }
 
@@ -316,15 +310,18 @@ class ActivitiesAndInterestsScreenState
   }
 
   void navigateToNextOrHomeScreen() {
+    // Kullanıcı bilgilerinde eksiklik varsa diğer ekrana, yoksa ana sayfaya yönlendir
     if (widget.missingInfo.contains('educationlevels') ||
         widget.missingInfo.contains('languages') ||
         widget.missingInfo.contains('locations') ||
         widget.missingInfo.contains('professions')) {
+      // Diğer bilgi eksiklikleri için yönlendirme
       Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) =>
               OtherInformationsScreen(missingInfo: widget.missingInfo)));
     } else {
-      // TODO: Navigate to the home page
+      // Bilgi eksikliği yoksa ana sayfaya yönlendirme
+      // TODO: Ana sayfa ekranına yönlendirme yapılacak
     }
   }
 }

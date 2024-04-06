@@ -118,21 +118,23 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
         'country': _selectedCountry,
         'tcNo': _tcNoController.text,
       });
-      if (response.statusCode == 200) {
-        // Kayıt başarılı olduğunda kullanıcıya başarı mesajı göster
-        WarningMessages.success(context, 'Registration successful');
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200 && responseData['error'] == false) {
+        // Handle successful registration
+        WarningMessages.success(
+            context, responseData['message'] ?? 'Registration successful');
         Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => LoginScreen(key: UniqueKey())),
         );
       } else {
-        // Kayıt başarısız olduğunda kullanıcıya hata mesajı göster
-        WarningMessages.error(context, 'Registration failed');
-        throw Exception('Registration failed');
+        // Handle failure or errors
+        String errorMessage = responseData['message'] ?? 'Registration failed';
+        _showErrorDialog(errorMessage);
       }
     } catch (e) {
-      // Genel kayıt hatası durumunda kullanıcıya hata mesajı göster
       _showErrorDialog('Registration error: $e');
     }
   }
