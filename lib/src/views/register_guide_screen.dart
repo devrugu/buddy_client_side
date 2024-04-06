@@ -11,6 +11,7 @@ import '../widgets/custom_text_form_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/warning_messages.dart';
 import 'login_screen.dart';
+import '../utilities/data_structures.dart';
 
 class RegisterGuideScreen extends StatefulWidget {
   const RegisterGuideScreen({super.key});
@@ -45,8 +46,7 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
 
   Future<void> _fetchCountries() async {
     try {
-      var url = Uri.parse(
-          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/countries.php');
+      var url = Uri.parse('$localUri/general/countries.php');
       var response = await http.get(url);
       if (response.statusCode == 200) {
         setState(() {
@@ -105,8 +105,7 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
     }
 
     try {
-      var url = Uri.parse(
-          'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/guide/register_guide.php');
+      var url = Uri.parse('$localUri/user/guide/register_guide.php');
       var response = await http.post(url, body: {
         'name': _nameController.text,
         'surname': _surnameController.text,

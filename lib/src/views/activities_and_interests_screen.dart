@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'other_informations_screen.dart';
+import '../utilities/data_structures.dart';
 
 class ActivitiesAndInterestsScreen extends StatefulWidget {
   final dynamic missingInfo;
@@ -41,8 +42,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchActivities() async {
-    const url =
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/activities.php';
+    final url = '$localUri/general/activities.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedCategories = json.decode(response.body);
@@ -61,8 +61,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchInterests() async {
-    const url =
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/interests.php';
+    final url = '$localUri/general/interests.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedInterests = json.decode(response.body);
@@ -79,8 +78,7 @@ class ActivitiesAndInterestsScreenState
     String? token = prefs
         .getString('jwt_token'); // Get the JWT token from SharedPreferences
 
-    var url = Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/save_activites_and_interests.php');
+    var url = Uri.parse('$localUri/user/save_activites_and_interests.php');
 
     // Convert the selected activities and interests to JSON
     var requestBody = jsonEncode({

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'src/views/welcome_screen.dart';
-import 'color.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({required Key key}) : super(key: key);

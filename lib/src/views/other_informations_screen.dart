@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utilities/data_structures.dart';
+
 class OtherInformationsScreen extends StatefulWidget {
   final dynamic missingInfo; // Eksik bilgileri tutacak değişken
   const OtherInformationsScreen({Key? key, required this.missingInfo})
@@ -41,8 +43,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchEducationLevels() async {
-    final response = await http.get(Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/education_levels.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/education_levels.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -55,8 +57,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLanguages() async {
-    final response = await http.get(Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/languages.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/languages.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -69,8 +71,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLocations() async {
-    final response = await http.get(Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/locations.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/locations.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -83,8 +85,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
   // Meslekleri çeken fonksiyon
   Future<void> fetchProfessions() async {
-    final response = await http.get(Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/general/professions.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/professions.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -571,8 +573,7 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token'); // JWT token
 
-    var url = Uri.parse(
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/save_other_informations.php');
+    var url = Uri.parse('$localUri/user/save_other_informations.php');
 
     // Seçilen verilerin JSON formatında hazırlanması
     var requestBody = jsonEncode({

@@ -9,6 +9,7 @@ import '../widgets/custom_button.dart';
 import 'welcome_screen.dart';
 import 'activities_and_interests_screen.dart';
 import 'other_informations_screen.dart';
+import '../utilities/data_structures.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({required Key key}) : super(key: key);
@@ -22,8 +23,7 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    const url =
-        'https://automatic-rotary-phone-j9v6vxwpv9g3qxvr-8080.app.github.dev/user/login.php';
+    final url = '$localUri/user/login.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
