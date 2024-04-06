@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utilities/data_structures.dart';
+import '../widgets/warning_messages.dart';
 
 class OtherInformationsScreen extends StatefulWidget {
   final dynamic missingInfo; // Eksik bilgileri tutacak değişken
@@ -575,18 +576,12 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
     var url = Uri.parse('$localUri/user/save_other_informations.php');
 
-    // Seçilen verilerin JSON formatında hazırlanması
     var requestBody = jsonEncode({
       'selectedEducationLevelId': selectedEducationLevelId,
       'selectedLanguages': selectedLanguages,
       'selectedLocationId': selectedLocationId,
       'selectedProfessions': selectedProfessions,
     });
-
-    print(selectedEducationLevelId);
-    print(selectedLanguages);
-    print(selectedLocationId);
-    print(selectedProfessions);
 
     var response = await http.post(
       url,
@@ -597,18 +592,18 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
       body: requestBody,
     );
 
-    print("Response status: ${response.statusCode}");
-    print("Response body: ${response.body}");
-
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
       if (jsonResponse['status'] == 'error') {
-        print("Errors: ${jsonResponse['errors']}");
+        // Eğer bir hata varsa kullanıcıya hata mesajı göster
+        WarningMessages.error(
+            context, "Errors: ${jsonResponse['errors'].join(', ')}");
       } else {
-        print("Data: ${jsonResponse['data']}");
+        // TODO: Başarılı işlem sonrası ana sayfaya yönlendir
       }
     } else {
-      print(
+      // Sunucu tarafında bir hata oluştuysa kullanıcıya bilgi ver
+      WarningMessages.error(context,
           "Failed to submit selections: Server responded with status code ${response.statusCode}");
     }
   }

@@ -105,7 +105,7 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
         !EmailValidator.validate(_emailController.text) ||
         !_isValidPassword(_passwordController.text) ||
         !_isValidPhoneNumber(_phoneNumberController.text) ||
-        //!_isValidDateOfBirth(_selectedDate) ||
+        //_isValidDateOfBirth(_selectedDate) ||
         _selectedCountry == null) {
       _showErrorDialog('Please fill in all fields correctly.');
       return;
@@ -124,17 +124,20 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
         'country': _selectedCountry,
       });
 
-      if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200 && responseData['error'] == false) {
         // Handle successful registration
-        WarningMessages.success(context, 'Registration successful');
+        WarningMessages.success(
+            context, responseData['message'] ?? 'Registration successful');
         Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => LoginScreen(key: UniqueKey())),
         );
       } else {
-        WarningMessages.error(context, 'Registration failed');
-        throw Exception('Registration failed');
+        // Handle failure or errors
+        String errorMessage = responseData['message'] ?? 'Registration failed';
+        _showErrorDialog(errorMessage);
       }
     } catch (e) {
       _showErrorDialog('Registration error: $e');
