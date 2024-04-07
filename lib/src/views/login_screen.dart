@@ -24,7 +24,7 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    final url = '$localUri/user/login.php';
+    final url = '$localUri/buddy-backend/user/login.php';
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -75,14 +75,14 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     // Theming for text fields to match the app's overall aesthetic
-    final InputDecoration textFieldDecoration = InputDecoration(
+    /* final InputDecoration textFieldDecoration = InputDecoration(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(25.0),
       ),
       filled: true,
       fillColor: Colors.white.withAlpha(235),
       labelStyle: TextStyle(color: Colors.blue.shade600),
-    );
+    ); */
 
     return Scaffold(
       body: SingleChildScrollView(

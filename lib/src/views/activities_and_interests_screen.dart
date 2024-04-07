@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -43,7 +43,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchActivities() async {
-    final url = '$localUri/general/activities.php';
+    final url = '$localUri/buddy-backend/general/activities.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedCategories = json.decode(response.body);
@@ -62,7 +62,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchInterests() async {
-    final url = '$localUri/general/interests.php';
+    final url = '$localUri/buddy-backend/general/interests.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedInterests = json.decode(response.body);
@@ -78,7 +78,8 @@ class ActivitiesAndInterestsScreenState
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
-    var url = Uri.parse('$localUri/user/save_activites_and_interests.php');
+    var url = Uri.parse(
+        '$localUri/buddy-backend/user/save_activites_and_interests.php');
 
     var requestBody = jsonEncode({
       'selectedActivities': selectedActivities.keys
