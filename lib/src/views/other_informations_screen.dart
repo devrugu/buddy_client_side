@@ -72,8 +72,17 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLocations() async {
-    final response = await http
-        .get(Uri.parse('$localUri/buddy-backend/general/locations.php'));
+    // TODO: in order to fetch locations by countries, we should send the jwt token to the server
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt_token');
+
+    final response = await http.get(
+        Uri.parse('$localUri/buddy-backend/general/locations.php'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        });
 
     if (response.statusCode == 200) {
       setState(() {
