@@ -36,38 +36,3 @@ class CustomButton extends StatelessWidget {
     );
   }
 }
-
-class CustomDrawerButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-  final TextStyle textStyle;
-
-  const CustomDrawerButton({
-    super.key,
-    required this.text,
-    required this.onPressed,
-    required this.textStyle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context)
-              .primaryColor, // Use the primary color from the theme
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius
-                .zero, // Drawer buttons typically have no borderRadius
-          ),
-          padding:
-              const EdgeInsets.symmetric(vertical: 20.0), // Comfortable padding
-          textStyle: textStyle,
-        ),
-        onPressed: onPressed,
-        child: Text(text, style: textStyle),
-      ),
-    );
-  }
-}
