@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'src/views/welcome_screen.dart';
 
-import 'src/views/tourist_home_screen.dart';
+import 'src/views/home_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({required Key key}) : super(key: key);
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const WelcomeScreen(key: Key('welcome_screen_key')),
+      home: HomeScreen(key: const Key('home_screen_key')),
     );
   }
 }
