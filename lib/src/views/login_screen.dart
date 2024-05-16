@@ -24,7 +24,7 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    final url = '$localUri/buddy-backend/user/login.php';
+    final url = '$localUri/user/login.php';
     final response = await http.post(
       Uri.parse(url),
       body: {

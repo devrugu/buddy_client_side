@@ -46,16 +46,20 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
 
   Future<void> _fetchCountries() async {
     try {
-      var url = Uri.parse('$localUri/buddy-backend/general/countries.php');
+      var url = Uri.parse('$localUri/general/countries.php');
+      print('Fetching countries from: $url'); // URL'yi loglayın
       var response = await http.get(url);
       if (response.statusCode == 200) {
+        print('Response body: ${response.body}'); // Yanıtı loglayın
         setState(() {
           _countries = List<String>.from(json.decode(response.body));
         });
       } else {
+        print('Failed to load countries: ${response.statusCode}');
         throw Exception('Failed to load countries');
       }
     } catch (e) {
+      print('Error: $e'); // Hataları loglayın
       _showErrorDialog('Unable to fetch countries: $e');
     }
   }
@@ -112,8 +116,7 @@ class RegisterTouristScreenState extends State<RegisterTouristScreen> {
     }
 
     try {
-      var url = Uri.parse(
-          '$localUri/buddy-backend/user/tourist/register_tourist.php');
+      var url = Uri.parse('$localUri/user/tourist/register_tourist.php');
       var response = await http.post(url, body: {
         'name': _nameController.text,
         'surname': _surnameController.text,

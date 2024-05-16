@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: HomeScreen(key: const Key('home_screen_key')),
+      home: const WelcomeScreen(key: Key('home_screen_key')),
     );
   }
 }
