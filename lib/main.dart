@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const WelcomeScreen(key: Key('welcome_screen_key')),
+      //home: const TouristHomeScreen(key: Key('tourist_home_screen_key')),
     );
   }
 }

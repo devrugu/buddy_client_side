@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'other_informations_screen.dart';
 import '../utilities/data_structures.dart';
 import '../widgets/warning_messages.dart';
+import 'tourist_home_screen.dart';
 
 class ActivitiesAndInterestsScreen extends StatefulWidget {
   final dynamic missingInfo;
@@ -321,6 +322,9 @@ class ActivitiesAndInterestsScreenState
     } else {
       // Bilgi eksikliği yoksa ana sayfaya yönlendirme
       // TODO: Ana sayfa ekranına yönlendirme yapılacak
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) =>
+              const TouristHomeScreen()));
     }
   }
 }

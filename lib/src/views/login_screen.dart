@@ -11,6 +11,7 @@ import 'welcome_screen.dart';
 import 'activities_and_interests_screen.dart';
 import 'other_informations_screen.dart';
 import '../utilities/data_structures.dart';
+import 'tourist_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({required Key key}) : super(key: key);
@@ -46,6 +47,10 @@ class LoginScreenState extends State<LoginScreen> {
         if (responseData['profile_status']) {
           // Profil tam ise ana sayfaya yönlendir
           // TODO: Ana sayfa ekranına yönlendirme yapılacak
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) =>
+                  const TouristHomeScreen(),
+            ));
         } else {
           // Eksik profil bilgileri varsa ilgili ekranlara yönlendir
           dynamic missingInfo = responseData['missing_info'];

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utilities/data_structures.dart';
 import '../widgets/warning_messages.dart';
+import 'tourist_home_screen.dart';
 
 class OtherInformationsScreen extends StatefulWidget {
   final dynamic missingInfo; // Eksik bilgileri tutacak değişken
@@ -72,8 +73,6 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLocations() async {
-    // TODO: in order to fetch locations by countries, we should send the jwt token to the server
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
@@ -557,6 +556,10 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
             {
               submitSelections();
               // TODO: Redirect to the home page
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) =>
+                  const TouristHomeScreen(),
+            ));
             }
           },
           style: ElevatedButton.styleFrom(
@@ -568,6 +571,10 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
         ElevatedButton(
           onPressed: () {
             // TODO: Redirect to the home page
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) =>
+                  const TouristHomeScreen(),
+            ));
           },
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
