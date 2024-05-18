@@ -44,7 +44,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchActivities() async {
-    final url = '$localUri/buddy-backend/general/activities.php';
+    final url = '$localUri/general/activities.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedCategories = json.decode(response.body);
@@ -63,7 +63,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchInterests() async {
-    final url = '$localUri/buddy-backend/general/interests.php';
+    final url = '$localUri/general/interests.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedInterests = json.decode(response.body);
@@ -79,8 +79,7 @@ class ActivitiesAndInterestsScreenState
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
-    var url = Uri.parse(
-        '$localUri/buddy-backend/user/save_activites_and_interests.php');
+    var url = Uri.parse('$localUri/user/save_activites_and_interests.php');
 
     var requestBody = jsonEncode({
       'selectedActivities': selectedActivities.keys
@@ -88,6 +87,9 @@ class ActivitiesAndInterestsScreenState
           .toList(),
       'selectedInterests': selectedInterests,
     });
+
+    print('URL: $url');
+    print('Request Body: $requestBody');
 
     try {
       var response = await http.post(
@@ -99,18 +101,20 @@ class ActivitiesAndInterestsScreenState
         body: requestBody,
       );
 
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       var decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (decodedResponse['status'] == 'success') {
-        // İşlem başarılı olduğunda kullanıcıyı bilgilendir
         WarningMessages.success(context, decodedResponse['message']);
         navigateToNextOrHomeScreen();
       } else {
-        // İşlem başarısız olduğunda kullanıcıya hata mesajını göster
         WarningMessages.error(
             context, decodedResponse['message'] ?? 'An error occurred.');
       }
     } catch (e) {
+      print('Error: $e');
       WarningMessages.error(
           context, 'An error occurred. Please try again later.');
     }
@@ -322,9 +326,8 @@ class ActivitiesAndInterestsScreenState
     } else {
       // Bilgi eksikliği yoksa ana sayfaya yönlendirme
       // TODO: Ana sayfa ekranına yönlendirme yapılacak
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) =>
-              const TouristHomeScreen()));
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const TouristHomeScreen()));
     }
   }
 }

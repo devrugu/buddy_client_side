@@ -45,8 +45,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchEducationLevels() async {
-    final response = await http
-        .get(Uri.parse('$localUri/buddy-backend/general/education_levels.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/education_levels.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -59,8 +59,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
   }
 
   Future<void> fetchLanguages() async {
-    final response = await http
-        .get(Uri.parse('$localUri/buddy-backend/general/languages.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/languages.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -76,12 +76,11 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
-    final response = await http.get(
-        Uri.parse('$localUri/buddy-backend/general/locations.php'),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        });
+    final response =
+        await http.get(Uri.parse('$localUri/general/locations.php'), headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
 
     if (response.statusCode == 200) {
       setState(() {
@@ -94,8 +93,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
   // Meslekleri çeken fonksiyon
   Future<void> fetchProfessions() async {
-    final response = await http
-        .get(Uri.parse('$localUri/buddy-backend/general/professions.php'));
+    final response =
+        await http.get(Uri.parse('$localUri/general/professions.php'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -557,9 +556,8 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
               submitSelections();
               // TODO: Redirect to the home page
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  const TouristHomeScreen(),
-            ));
+                builder: (context) => const TouristHomeScreen(),
+              ));
             }
           },
           style: ElevatedButton.styleFrom(
@@ -572,8 +570,7 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
           onPressed: () {
             // TODO: Redirect to the home page
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  const TouristHomeScreen(),
+              builder: (context) => const TouristHomeScreen(),
             ));
           },
           style: ElevatedButton.styleFrom(
@@ -588,10 +585,9 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
 
   Future<void> submitSelections() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('jwt_token'); // JWT token
+    String? token = prefs.getString('jwt_token');
 
-    var url =
-        Uri.parse('$localUri/buddy-backend/user/save_other_informations.php');
+    var url = Uri.parse('$localUri/user/save_other_informations.php');
 
     var requestBody = jsonEncode({
       'selectedEducationLevelId': selectedEducationLevelId,
@@ -600,28 +596,43 @@ class OtherInformationScreenState extends State<OtherInformationsScreen> {
       'selectedProfessions': selectedProfessions,
     });
 
-    var response = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: requestBody,
-    );
+    print('URL: $url');
+    print('Request Body: $requestBody');
 
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      if (jsonResponse['status'] == 'error') {
-        // Eğer bir hata varsa kullanıcıya hata mesajı göster
-        WarningMessages.error(
-            context, "Errors: ${jsonResponse['errors'].join(', ')}");
+    try {
+      var response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: requestBody,
+      );
+
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        if (jsonResponse['status'] == 'error') {
+          // Eğer bir hata varsa kullanıcıya hata mesajı göster
+          WarningMessages.error(
+              context, "Errors: ${jsonResponse['errors'].join(', ')}");
+        } else {
+          // Başarılı işlem sonrası ana sayfaya yönlendir
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => const TouristHomeScreen(),
+          ));
+        }
       } else {
-        // TODO: Başarılı işlem sonrası ana sayfaya yönlendir
+        // Sunucu tarafında bir hata oluştuysa kullanıcıya bilgi ver
+        WarningMessages.error(context,
+            "Failed to submit selections: Server responded with status code ${response.statusCode}");
       }
-    } else {
-      // Sunucu tarafında bir hata oluştuysa kullanıcıya bilgi ver
-      WarningMessages.error(context,
-          "Failed to submit selections: Server responded with status code ${response.statusCode}");
+    } catch (e) {
+      print('Error: $e');
+      WarningMessages.error(
+          context, 'An error occurred. Please try again later.');
     }
   }
 }
