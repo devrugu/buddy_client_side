@@ -25,61 +25,55 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    final url = '$localUri/user/login.php';
-    print('Sending POST request to: $url'); // URL'yi loglayın
+    final url = '$localUri/buddy-backend/user/login.php';
+    final response = await http.post(
+      Uri.parse(url),
+      body: {
+        'username': username,
+        'password': password,
+      },
+    );
 
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Header ekleyin
-        },
-        body: {
-          'username': username,
-          'password': password,
-        },
-      );
+    final responseData =
+        json.decode(response.body); // Response'u JSON olarak decode edin.
 
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      if (!responseData['error']) {
+        // Giriş başarılı durumu
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt_token', responseData['token']);
 
-      final responseData =
-          json.decode(response.body); // Response'u JSON olarak decode edin.
-
-      if (response.statusCode == 200) {
-        if (!responseData['error']) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('jwt_token', responseData['token']);
-
-          if (responseData['profile_status']) {
+        // Eksik profil bilgilerini kontrol etme ve yönlendirme
+        if (responseData['profile_status']) {
+          // Profil tam ise ana sayfaya yönlendir
+          // TODO: Ana sayfa ekranına yönlendirme yapılacak
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) =>
+                  const TouristHomeScreen(),
+            ));
+        } else {
+          // Eksik profil bilgileri varsa ilgili ekranlara yönlendir
+          dynamic missingInfo = responseData['missing_info'];
+          if (missingInfo.contains('activities') ||
+              missingInfo.contains('interests')) {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => const TouristHomeScreen(),
+              builder: (context) =>
+                  ActivitiesAndInterestsScreen(missingInfo: missingInfo),
             ));
           } else {
-            dynamic missingInfo = responseData['missing_info'];
-            if (missingInfo.contains('activities') ||
-                missingInfo.contains('interests')) {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) =>
-                    ActivitiesAndInterestsScreen(missingInfo: missingInfo),
-              ));
-            } else {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) =>
-                    OtherInformationsScreen(missingInfo: missingInfo),
-              ));
-            }
+                    OtherInformationsScreen(missingInfo: missingInfo)));
           }
-        } else {
-          WarningMessages.error(context, responseData['message']);
         }
       } else {
-        WarningMessages.error(
-            context, 'An error occurred. Please try again later.');
+        // Hata durumu (Kullanıcı adı bulunamadı veya şifre yanlış)
+        WarningMessages.error(context, responseData['message']);
       }
-    } catch (e) {
-      print('Error: $e');
-      WarningMessages.error(context, 'Unable to login: $e');
+    } else {
+      // Sunucu tarafında bir hata oluştu
+      WarningMessages.error(
+          context, 'An error occurred. Please try again later.');
     }
   }
 

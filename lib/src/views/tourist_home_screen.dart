@@ -22,14 +22,14 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
   @override
   void initState() {
     super.initState();
-    futureGuides = Future.value([]);
+    futureGuides  = Future.value([]);
     _initializeLocationAndFetchGuides();
   }
 
   Future<void> _initializeLocationAndFetchGuides() async {
     try {
       Position position = await _getCurrentLocation();
-      //await _updateLocation(position.latitude, position.longitude);
+      await _updateLocation(position.latitude, position.longitude);
       setState(() {
         futureGuides = fetchGuides();
       });
@@ -56,12 +56,10 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
     }
 
-    return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
 
   Future<void> _updateLocation(double latitude, double longitude) async {
@@ -73,8 +71,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     }
 
     final response = await http.post(
-      Uri.parse(
-          '$localUri/general/update_current_location.php'), // Replace with your endpoint URL
+      Uri.parse('$localUri/buddy-backend/general/update_current_location.php'), // Replace with your endpoint URL
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -99,15 +96,11 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     }
 
     final response = await http.get(
-      Uri.parse(
-          '$localUri/user/tourist/recommend_guides.php'), // Replace with your endpoint URL
+      Uri.parse('$localUri/buddy-backend/user/tourist/recommend_guides.php'), // Replace with your endpoint URL
       headers: {
         'Authorization': 'Bearer $token',
       },
     );
-
-    print('Response Status Code: ${response.statusCode}');
-    print('Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -115,12 +108,9 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
         final guides = data['guides'] as List;
         return guides.map((guide) => Guide.fromJson(guide)).toList();
       } else {
-        print('Error: ${data['message']}');
         throw Exception(data['message']);
       }
     } else {
-      print(
-          'Failed to load guides: Server responded with status code ${response.statusCode}');
       throw Exception('Failed to load guides');
     }
   }
@@ -139,8 +129,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
               accountName: Text('Tourist Name'),
               accountEmail: Text(''),
               currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage(
-                    'https://example.com/profile_picture.jpg'), // Replace with actual profile picture URL
+                backgroundImage: NetworkImage('https://example.com/profile_picture.jpg'), // Replace with actual profile picture URL
               ),
             ),
             ListTile(
@@ -149,8 +138,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 );
               },
             ),
@@ -160,8 +148,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsScreen()),
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 );
               },
             ),
@@ -192,7 +179,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
                   name: '${guide.name} ${guide.surname}',
                   rating: guide.rating,
                   reviews: guide.reviews,
-                  ratePerHour: guide.hourlyWage,
+                  ratePerHour: guide.ratePerHour,
                   images: guide.images,
                 );
               }).toList(),
@@ -215,24 +202,18 @@ class Guide {
   final int userId;
   final String name;
   final String surname;
-  final double latitude;
-  final double longitude;
-  final int countryId;
   final double rating;
   final int reviews;
-  final double hourlyWage;
+  final double ratePerHour;
   final List<String> images;
 
   Guide({
     required this.userId,
     required this.name,
     required this.surname,
-    required this.latitude,
-    required this.longitude,
-    required this.countryId,
     required this.rating,
     required this.reviews,
-    required this.hourlyWage,
+    required this.ratePerHour,
     required this.images,
   });
 
@@ -241,12 +222,9 @@ class Guide {
       userId: json['user_id'],
       name: json['name'],
       surname: json['surname'],
-      latitude: double.parse(json['latitude']),
-      longitude: double.parse(json['longitude']),
-      countryId: json['country_id'],
-      rating: double.parse(json['rating']),
-      reviews: json['reviews'],
-      hourlyWage: double.parse(json['hourly_wage']),
+      rating: json['rating'] ?? 0.0,
+      reviews: json['reviews'] ?? 0,
+      ratePerHour: json['rate_per_hour'] ?? 0.0,
       images: List<String>.from(json['images']),
     );
   }
