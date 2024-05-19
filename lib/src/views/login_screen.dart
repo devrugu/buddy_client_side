@@ -25,55 +25,61 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    final url = '$localUri/buddy-backend/user/login.php';
-    final response = await http.post(
-      Uri.parse(url),
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
+    final url = '$localUri/user/login.php';
+    print('Sending POST request to: $url'); // URL'yi loglayın
 
-    final responseData =
-        json.decode(response.body); // Response'u JSON olarak decode edin.
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded', // Header ekleyin
+        },
+        body: {
+          'username': username,
+          'password': password,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      if (!responseData['error']) {
-        // Giriş başarılı durumu
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('jwt_token', responseData['token']);
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-        // Eksik profil bilgilerini kontrol etme ve yönlendirme
-        if (responseData['profile_status']) {
-          // Profil tam ise ana sayfaya yönlendir
-          // TODO: Ana sayfa ekranına yönlendirme yapılacak
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  const TouristHomeScreen(),
-            ));
-        } else {
-          // Eksik profil bilgileri varsa ilgili ekranlara yönlendir
-          dynamic missingInfo = responseData['missing_info'];
-          if (missingInfo.contains('activities') ||
-              missingInfo.contains('interests')) {
+      final responseData =
+          json.decode(response.body); // Response'u JSON olarak decode edin.
+
+      if (response.statusCode == 200) {
+        if (!responseData['error']) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('jwt_token', responseData['token']);
+
+          if (responseData['profile_status']) {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  ActivitiesAndInterestsScreen(missingInfo: missingInfo),
+              builder: (context) => const TouristHomeScreen(),
             ));
           } else {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
+            dynamic missingInfo = responseData['missing_info'];
+            if (missingInfo.contains('activities') ||
+                missingInfo.contains('interests')) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) =>
-                    OtherInformationsScreen(missingInfo: missingInfo)));
+                    ActivitiesAndInterestsScreen(missingInfo: missingInfo),
+              ));
+            } else {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    OtherInformationsScreen(missingInfo: missingInfo),
+              ));
+            }
           }
+        } else {
+          WarningMessages.error(context, responseData['message']);
         }
       } else {
-        // Hata durumu (Kullanıcı adı bulunamadı veya şifre yanlış)
-        WarningMessages.error(context, responseData['message']);
+        WarningMessages.error(
+            context, 'An error occurred. Please try again later.');
       }
-    } else {
-      // Sunucu tarafında bir hata oluştu
-      WarningMessages.error(
-          context, 'An error occurred. Please try again later.');
+    } catch (e) {
+      print('Error: $e');
+      WarningMessages.error(context, 'Unable to login: $e');
     }
   }
 

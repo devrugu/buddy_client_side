@@ -46,7 +46,7 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
 
   Future<void> _fetchCountries() async {
     try {
-      var url = Uri.parse('$localUri/buddy-backend/general/countries.php');
+      var url = Uri.parse('$localUri/general/countries.php');
       var response = await http.get(url);
       if (response.statusCode == 200) {
         setState(() {
@@ -105,8 +105,7 @@ class RegisterGuideScreenState extends State<RegisterGuideScreen> {
     }
 
     try {
-      var url =
-          Uri.parse('$localUri/buddy-backend/user/guide/register_guide.php');
+      var url = Uri.parse('$localUri/user/guide/register_guide.php');
       var response = await http.post(url, body: {
         'name': _nameController.text,
         'surname': _surnameController.text,
