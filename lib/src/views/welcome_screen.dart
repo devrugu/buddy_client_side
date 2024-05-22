@@ -52,10 +52,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
             );
           } else if (roleId == 2) {
-            /*Navigator.pushReplacement(
+            Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => GuideHomeScreen()),
-            );*/
+              MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
+            );
           }
           return; // Ensure we don't set _isCheckingLoginStatus to false if we navigated away
         }

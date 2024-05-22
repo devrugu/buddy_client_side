@@ -316,7 +316,17 @@ class ActivitiesAndInterestsScreenState
   }
 
   void navigateToNextOrHomeScreen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (widget.missingInfo.contains('educationlevels') ||
+        widget.missingInfo.contains('languages') ||
+        widget.missingInfo.contains('locations') ||
+        widget.missingInfo.contains('professions')) {
+      // Diğer bilgi eksiklikleri için yönlendirme
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) =>
+              OtherInformationsScreen(missingInfo: widget.missingInfo)));
+    } else {
+      // Bilgi eksikliği yoksa ana sayfaya yönlendirme
+      SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
     if (token != null) {
@@ -325,15 +335,15 @@ class ActivitiesAndInterestsScreenState
         final roleId = jwt.payload['data']['role_id'];
 
         // TODO: Implement navigation to the appropriate home screen
-        if (roleId == 1 || roleId == 2) {
+        if (roleId == 1) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
           );
-        } /*else if (roleId == 2) {
+        } else if (roleId == 2) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
           );
-        }*/ else {
+        } else {
           WarningMessages.error(context, 'Invalid role ID');
         }
       } catch (e) {
@@ -342,6 +352,7 @@ class ActivitiesAndInterestsScreenState
       }
     } else {
       WarningMessages.error(context, 'Token not found. Please log in again.');
+    }
     }
   }
 }

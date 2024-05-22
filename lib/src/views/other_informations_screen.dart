@@ -600,15 +600,15 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
         final roleId = jwt.payload['data']['role_id'];
 
         // TODO: Implement navigation to the appropriate home screen
-        if (roleId == 1 || roleId == 2) {
+        if (roleId == 1) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
           );
-        } /*else if (roleId == 2) {
+        } else if (roleId == 2) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
           );
-        }*/ else {
+        } else {
           WarningMessages.error(context, 'Invalid role ID');
         }
       } catch (e) {

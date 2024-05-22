@@ -55,15 +55,15 @@ class LoginScreenState extends State<LoginScreen> {
           if (responseData['profile_status']) {
             final roleId = responseData['role_id'];
             // TODO: Implement navigation to the appropriate home screen
-            if (roleId == 1 || roleId == 2) {
+            if (roleId == 1) {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) => const TouristHomeScreen(),
               ));
-            } /*else if (roleId == 2) {
+            } else if (roleId == 2) {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) => const GuideHomeScreen(),
               ));
-            }*/
+            }
           } else {
             dynamic missingInfo = responseData['missing_info'];
             if (missingInfo.contains('activities') ||
