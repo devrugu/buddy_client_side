@@ -24,6 +24,7 @@ dependencies:
   smooth_page_indicator: ^1.1.0
   carousel_slider: ^4.0.0
   geolocator: ^9.0.0
+  dart_jsonwebtoken: ^2.14.0
 
 dev_dependencies:
   flutter_test:

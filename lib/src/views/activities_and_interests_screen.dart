@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import 'other_informations_screen.dart';
 import '../utilities/data_structures.dart';
 import '../widgets/warning_messages.dart';
 import 'tourist_home_screen.dart';
+import 'guide_home_screen.dart';
 
 class ActivitiesAndInterestsScreen extends StatefulWidget {
   final dynamic missingInfo;
@@ -44,7 +46,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchActivities() async {
-    final url = '$localUri/buddy-backend/general/activities.php';
+    final url = '$localUri/general/activities.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedCategories = json.decode(response.body);
@@ -63,7 +65,7 @@ class ActivitiesAndInterestsScreenState
   }
 
   Future<void> fetchInterests() async {
-    final url = '$localUri/buddy-backend/general/interests.php';
+    final url = '$localUri/general/interests.php';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final fetchedInterests = json.decode(response.body);
@@ -79,8 +81,7 @@ class ActivitiesAndInterestsScreenState
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
-    var url = Uri.parse(
-        '$localUri/buddy-backend/user/save_activites_and_interests.php');
+    var url = Uri.parse('$localUri/user/save_activites_and_interests.php');
 
     var requestBody = jsonEncode({
       'selectedActivities': selectedActivities.keys
@@ -88,6 +89,9 @@ class ActivitiesAndInterestsScreenState
           .toList(),
       'selectedInterests': selectedInterests,
     });
+
+    print('URL: $url');
+    print('Request Body: $requestBody');
 
     try {
       var response = await http.post(
@@ -99,18 +103,20 @@ class ActivitiesAndInterestsScreenState
         body: requestBody,
       );
 
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       var decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (decodedResponse['status'] == 'success') {
-        // İşlem başarılı olduğunda kullanıcıyı bilgilendir
         WarningMessages.success(context, decodedResponse['message']);
         navigateToNextOrHomeScreen();
       } else {
-        // İşlem başarısız olduğunda kullanıcıya hata mesajını göster
         WarningMessages.error(
             context, decodedResponse['message'] ?? 'An error occurred.');
       }
     } catch (e) {
+      print('Error: $e');
       WarningMessages.error(
           context, 'An error occurred. Please try again later.');
     }
@@ -309,22 +315,33 @@ class ActivitiesAndInterestsScreenState
     navigateToNextOrHomeScreen();
   }
 
-  void navigateToNextOrHomeScreen() {
-    // Kullanıcı bilgilerinde eksiklik varsa diğer ekrana, yoksa ana sayfaya yönlendir
-    if (widget.missingInfo.contains('educationlevels') ||
-        widget.missingInfo.contains('languages') ||
-        widget.missingInfo.contains('locations') ||
-        widget.missingInfo.contains('professions')) {
-      // Diğer bilgi eksiklikleri için yönlendirme
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) =>
-              OtherInformationsScreen(missingInfo: widget.missingInfo)));
+  void navigateToNextOrHomeScreen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt_token');
+
+    if (token != null) {
+      try {
+        final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+        final roleId = jwt.payload['data']['role_id'];
+
+        // TODO: Implement navigation to the appropriate home screen
+        if (roleId == 1 || roleId == 2) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
+          );
+        } /*else if (roleId == 2) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
+          );
+        }*/ else {
+          WarningMessages.error(context, 'Invalid role ID');
+        }
+      } catch (e) {
+        print('Error decoding token: $e');
+        WarningMessages.error(context, 'Invalid token. Please log in again.');
+      }
     } else {
-      // Bilgi eksikliği yoksa ana sayfaya yönlendirme
-      // TODO: Ana sayfa ekranına yönlendirme yapılacak
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) =>
-              const TouristHomeScreen()));
+      WarningMessages.error(context, 'Token not found. Please log in again.');
     }
   }
 }

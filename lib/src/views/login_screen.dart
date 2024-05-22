@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, duplicate_ignore
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +12,7 @@ import 'activities_and_interests_screen.dart';
 import 'other_informations_screen.dart';
 import '../utilities/data_structures.dart';
 import 'tourist_home_screen.dart';
+import 'guide_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({required Key key}) : super(key: key);
@@ -25,73 +26,76 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser(String username, String password) async {
-    final url = '$localUri/buddy-backend/user/login.php';
-    final response = await http.post(
-      Uri.parse(url),
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
+    final url = '$localUri/user/login.php';
+    print('Sending POST request to: $url'); // URL'yi loglayın
 
-    final responseData =
-        json.decode(response.body); // Response'u JSON olarak decode edin.
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded', // Header ekleyin
+        },
+        body: {
+          'username': username,
+          'password': password,
+        },
+      );
 
-    if (response.statusCode == 200) {
-      if (!responseData['error']) {
-        // Giriş başarılı durumu
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('jwt_token', responseData['token']);
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-        // Eksik profil bilgilerini kontrol etme ve yönlendirme
-        if (responseData['profile_status']) {
-          // Profil tam ise ana sayfaya yönlendir
-          // TODO: Ana sayfa ekranına yönlendirme yapılacak
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  const TouristHomeScreen(),
-            ));
-        } else {
-          // Eksik profil bilgileri varsa ilgili ekranlara yönlendir
-          dynamic missingInfo = responseData['missing_info'];
-          if (missingInfo.contains('activities') ||
-              missingInfo.contains('interests')) {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) =>
-                  ActivitiesAndInterestsScreen(missingInfo: missingInfo),
-            ));
+      final responseData =
+          json.decode(response.body); // Response'u JSON olarak decode edin.
+
+      if (response.statusCode == 200) {
+        if (!responseData['error']) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('jwt_token', responseData['token']);
+
+          if (responseData['profile_status']) {
+            final roleId = responseData['role_id'];
+            // TODO: Implement navigation to the appropriate home screen
+            if (roleId == 1 || roleId == 2) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => const TouristHomeScreen(),
+              ));
+            } /*else if (roleId == 2) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) => const GuideHomeScreen(),
+              ));
+            }*/
           } else {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
+            dynamic missingInfo = responseData['missing_info'];
+            if (missingInfo.contains('activities') ||
+                missingInfo.contains('interests')) {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) =>
-                    OtherInformationsScreen(missingInfo: missingInfo)));
+                    ActivitiesAndInterestsScreen(missingInfo: missingInfo),
+              ));
+            } else {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    OtherInformationsScreen(missingInfo: missingInfo),
+              ));
+            }
           }
+        } else {
+          WarningMessages.error(context, responseData['message']);
         }
       } else {
-        // Hata durumu (Kullanıcı adı bulunamadı veya şifre yanlış)
-        WarningMessages.error(context, responseData['message']);
+        WarningMessages.error(
+            context, 'An error occurred. Please try again later.');
       }
-    } else {
-      // Sunucu tarafında bir hata oluştu
-      WarningMessages.error(
-          context, 'An error occurred. Please try again later.');
+    } catch (e) {
+      print('Error: $e');
+      WarningMessages.error(context, 'Unable to login: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Theming for text fields to match the app's overall aesthetic
-    /* final InputDecoration textFieldDecoration = InputDecoration(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(25.0),
-      ),
-      filled: true,
-      fillColor: Colors.white.withAlpha(235),
-      labelStyle: TextStyle(color: Colors.blue.shade600),
-    ); */
-
     return Scaffold(
       body: SingleChildScrollView(
-        // Wrap with SingleChildScrollView to avoid overflow when keyboard is visible
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
           child: Column(
@@ -99,79 +103,58 @@ class LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Logo image
               Image.asset(
-                'assets/images/Logo2.png', // Make sure this path is correct
-                height:
-                    200, // Adjusted size to provide more space for other elements
+                'assets/images/Logo2.png',
+                height: 200,
               ),
               const SizedBox(height: 48),
-              // Username input field
               TextFormField(
                 controller: _usernameController,
-                cursorColor: Colors.blue.shade600, // İmleç rengini ayarlar
+                cursorColor: Colors.blue.shade600,
                 decoration: InputDecoration(
                   labelText: 'Username',
                   border: OutlineInputBorder(
-                    // Normal durumda görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Colors.green), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Colors.green),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    // Odaklanılmadığında görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(
-                            255, 0, 0, 0)), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    // Odaklanıldığında görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Colors.blueAccent), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Colors.blueAccent),
                   ),
-                  fillColor: Colors.white.withAlpha(235), // Arka plan rengi
-                  filled: true, // Arka plan renginin görünür olmasını sağlar
-                  labelStyle: TextStyle(
-                      color: Colors.blue.shade600), // Etiket metni stili
+                  fillColor: Colors.white.withAlpha(235),
+                  filled: true,
+                  labelStyle: TextStyle(color: Colors.blue.shade600),
                 ),
               ),
               const SizedBox(height: 16),
-              // Password input field
               TextFormField(
                 controller: _passwordController,
-                cursorColor: Colors.blue.shade600, // İmleç rengini ayarlar
+                cursorColor: Colors.blue.shade600,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(
-                    // Normal durumda görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Colors.green), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Colors.green),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    // Odaklanılmadığında görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(
-                            255, 0, 0, 0)), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    // Odaklanıldığında görünen sınır
                     borderRadius: BorderRadius.circular(25.0),
-                    borderSide: const BorderSide(
-                        color: Colors.blueAccent), // Sınır rengini ayarlar
+                    borderSide: const BorderSide(color: Colors.blueAccent),
                   ),
-                  fillColor: Colors.white.withAlpha(235), // Arka plan rengi
-                  filled: true, // Arka plan renginin görünür olmasını sağlar
-                  labelStyle: TextStyle(
-                      color: Colors.blue.shade600), // Etiket metni stili
+                  fillColor: Colors.white.withAlpha(235),
+                  filled: true,
+                  labelStyle: TextStyle(color: Colors.blue.shade600),
                 ),
-                obscureText: true, // Ensure password is obscured
+                obscureText: true,
               ),
               const SizedBox(height: 16),
-              // Forgot password button/text
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -183,7 +166,6 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              // Login button
               CustomButton(
                 text: 'Login',
                 onPressed: () {
@@ -193,7 +175,7 @@ class LoginScreenState extends State<LoginScreen> {
                 },
                 color: Colors.blue.shade600,
                 textStyle: const TextStyle(
-                    color: Colors.white), // Text style for the button
+                    color: Colors.white),
               ),
               const SizedBox(height: 32),
               Align(
@@ -201,7 +183,6 @@ class LoginScreenState extends State<LoginScreen> {
                 child: TextButton(
                   onPressed: () {
                     Navigator.pushReplacement(
-                      // Use pushReplacement to avoid building a stack of screens
                       context,
                       MaterialPageRoute(
                           builder: (context) =>

@@ -2,18 +2,23 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class GuideCard extends StatefulWidget {
+  final int guideId;
   final String name;
   final double rating;
   final int reviews;
   final double ratePerHour;
   final List<String> images;
+  final VoidCallback onTap;
 
-  const GuideCard({super.key, 
+  const GuideCard({
+    super.key,
+    required this.guideId,
     required this.name,
     required this.rating,
     required this.reviews,
     required this.ratePerHour,
     required this.images,
+    required this.onTap,
   });
 
   @override
@@ -27,12 +32,7 @@ class GuideCardState extends State<GuideCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ReviewGuideProfile()),
-        );
-      },
+      onTap: widget.onTap,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
         shape: RoundedRectangleBorder(
@@ -41,7 +41,6 @@ class GuideCardState extends State<GuideCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Carousel
             Stack(
               children: [
                 CarouselSlider(
@@ -72,7 +71,6 @@ class GuideCardState extends State<GuideCard> {
                   ),
                   carouselController: _carouselController,
                 ),
-                // Hourly Wage
                 Positioned(
                   top: 8.0,
                   right: 8.0,
@@ -94,7 +92,6 @@ class GuideCardState extends State<GuideCard> {
                 ),
               ],
             ),
-            // Indicator Dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: widget.images.asMap().entries.map((entry) {
@@ -116,7 +113,6 @@ class GuideCardState extends State<GuideCard> {
                 );
               }).toList(),
             ),
-            // Guide Details
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
@@ -132,7 +128,6 @@ class GuideCardState extends State<GuideCard> {
                 ],
               ),
             ),
-            // Stars and Reviews
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
@@ -163,22 +158,6 @@ class GuideCardState extends State<GuideCard> {
           return const Icon(Icons.star_border, color: Colors.yellow, size: 20.0);
         }
       }),
-    );
-  }
-}
-
-class ReviewGuideProfile extends StatelessWidget {
-  const ReviewGuideProfile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Guide Profile'),
-      ),
-      body: const Center(
-        child: Text('Review Guide Profile Screen'),
-      ),
     );
   }
 }
