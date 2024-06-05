@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../utilities/data_structures.dart';
 import 'review_tourist_profile_screen.dart';
@@ -13,7 +15,6 @@ import 'guide_profile_screen.dart';
 import 'settings_screen.dart';
 import 'welcome_screen.dart';
 import '../widgets/tourist_card.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 class GuideHomeScreen extends StatefulWidget {
   const GuideHomeScreen({Key? key}) : super(key: key);
@@ -34,8 +35,11 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabSelection);
-    _refreshRequests();
-    _timer = Timer.periodic(const Duration(seconds: 30), (Timer t) {
+    futurePendingRequests = fetchRequests('pending');
+    futureAcceptedRequests = fetchRequests('accepted');
+    futureDeniedRequests = fetchRequests('denied');
+    _initializeLocationAndRefreshRequests();
+    _timer = Timer.periodic(const Duration(seconds: 300), (Timer t) {
       _refreshRequests();
     });
   }
@@ -60,33 +64,106 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
     });
   }
 
-  Future<List<TouristRequest>> fetchRequests(String status) async {
+  Future<void> _initializeLocationAndRefreshRequests() async {
+    try {
+      Position? position;
+      try {
+        position = await _getCurrentLocation();
+        if (position != null) {
+          await _updateLocation(position.latitude, position.longitude);
+        }
+      } catch (e) {
+        print('Error getting location: $e');
+      }
+      _refreshRequests();
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<Position?> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return null;
+      }
+    } else if (permission == LocationPermission.deniedForever) {
+      return null;
+    }
+
+    if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+      return await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> _updateLocation(double latitude, double longitude) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwt_token');
+    print('Token in _updateLocation: $token'); // Debugging
 
     if (token == null) {
       throw Exception('JWT token not found');
     }
 
-    final response = await http.get(
-      Uri.parse('$localUri/user/guide/tourist_requests.php?status=$status'),
+    final response = await http.post(
+      Uri.parse('$localUri/general/update_current_location.php'),
       headers: {
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
+      body: jsonEncode({
+        'latitude': latitude,
+        'longitude': longitude,
+      }),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['error'] == false) {
-        final requests = data['requests'] as List;
-        return requests.map((request) => TouristRequest.fromJson(request)).toList();
-      } else {
-        throw Exception(data['message']);
-      }
-    } else {
-      throw Exception('Failed to load requests');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update location');
     }
   }
+
+  Future<List<TouristRequest>> fetchRequests(String status) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwt_token');
+
+  if (token == null) {
+    throw Exception('JWT token not found');
+  }
+
+  final response = await http.get(
+    Uri.parse('$localUri/user/guide/tourist_requests.php?status=$status'),
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  print('Response Body: ${response.body}'); // Add this line to inspect the response
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['error'] == false) {
+      final requests = data['requests'] as List;
+      return requests.map((request) => TouristRequest.fromJson(request)).toList();
+    } else {
+      throw Exception(data['message']);
+    }
+  } else {
+    throw Exception('Failed to load requests');
+  }
+}
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -111,8 +188,7 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
         await prefs.remove('jwt_token');
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => const WelcomeScreen()),
+          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
         );
       } else {
         print('Error: ${data['message']}');
@@ -139,6 +215,39 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
       print('JWT token not found');
     }
   }
+
+  Future<void> finishService(int touristId, int requestId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwt_token');
+
+  if (token == null) {
+    throw Exception('JWT token not found');
+  }
+
+  final response = await http.post(
+    Uri.parse('$localUri/user/guide/finish_service.php'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'tourist_id': touristId, 'request_id': requestId}),
+  );
+
+  print('Response Body: ${response.body}'); // Add this line to inspect the response
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['error'] == false) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
+      _refreshRequests();
+    } else {
+      throw Exception(data['message']);
+    }
+  } else {
+    throw Exception('Failed to finish service');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -173,12 +282,10 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
               onTap: () {
-                // TODO: Navigate to profile screen
-                /*Navigator.push(
+                /* Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
-                );*/
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                ); */
               },
             ),
             ListTile(
@@ -187,8 +294,7 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsScreen()),
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 );
               },
             ),
@@ -218,7 +324,7 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
 
   Widget buildRequestsList(Future<List<TouristRequest>> futureRequests, Color tabColor, String status) {
     return Container(
-      color: tabColor.withOpacity(0.5),
+      color: tabColor.withOpacity(0.2),
       child: FutureBuilder<List<TouristRequest>>(
         future: futureRequests,
         builder: (context, snapshot) {
@@ -238,6 +344,7 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
                   rating: request.rating,
                   reviews: request.reviews,
                   pictures: request.pictures,
+                  serviceFinished: request.serviceFinished, // Pass the serviceFinished flag
                   onTap: () async {
                     await updateTokenWithTouristId(request.touristId);
                     if (status == 'pending') {
@@ -248,15 +355,47 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
                         ),
                       );
                     } else if (status == 'accepted') {
-                      // TODO: Navigate to chat screen
-                      /*Navigator.push(
+                      /* Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ChatScreen(touristId: request.touristId),
                         ),
-                      );*/
+                      ); */
                     }
                   },
+                  extraButton: status == 'accepted' && !request.serviceFinished
+                      ? ElevatedButton(
+                          onPressed: () async {
+                            bool? confirmed = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Finish Service'),
+                                  content: const Text('Are you sure you want to finish this service?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false);
+                                      },
+                                      child: const Text('No'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text('Yes'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            if (confirmed == true) {
+                              await finishService(request.touristId, request.requestId);
+                            }
+                          },
+                          child: const Text('Finish Service'),
+                        )
+                      : null,
                 );
               }).toList(),
             );
@@ -269,32 +408,38 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
 
 class TouristRequest {
   final int touristId;
+  final int requestId;
   final String name;
   final String surname;
   final String status;
   final double rating;
   final int reviews;
   final List<String> pictures;
+  final bool serviceFinished;
 
   TouristRequest({
     required this.touristId,
+    required this.requestId,
     required this.name,
     required this.surname,
     required this.status,
     required this.rating,
     required this.reviews,
     required this.pictures,
+    required this.serviceFinished,
   });
 
   factory TouristRequest.fromJson(Map<String, dynamic> json) {
     return TouristRequest(
       touristId: json['tourist_id'],
+      requestId: json['request_id'],
       name: json['name'],
       surname: json['surname'],
       status: json['status'],
       rating: json['rating'] != null ? double.parse(json['rating'].toString()) : 0.0,
       reviews: json['reviews'] ?? 0,
       pictures: List<String>.from(json['pictures']),
+      serviceFinished: json['service_finished'] == 1, // Convert 1 to true and 0 to false
     );
   }
 }

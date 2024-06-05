@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
+// ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -33,8 +33,15 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
 
   Future<void> _initializeLocationAndFetchGuides() async {
     try {
-      Position position = await _getCurrentLocation();
-      await _updateLocation(position.latitude, position.longitude);
+      Position? position;
+      try {
+        position = await _getCurrentLocation();
+        if (position != null) {
+          await _updateLocation(position.latitude, position.longitude);
+        }
+      } catch (e) {
+        print('Error getting location: $e');
+      }
       setState(() {
         futureGuides = fetchGuides();
       });
@@ -43,7 +50,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     }
   }
 
-  Future<Position> _getCurrentLocation() async {
+  Future<Position?> _getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -56,17 +63,18 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+        return null;
       }
+    } else if (permission == LocationPermission.deniedForever) {
+      return null;
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+    if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+      return await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+    } else {
+      return null;
     }
-
-    return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
   }
 
   Future<void> _updateLocation(double latitude, double longitude) async {
@@ -152,16 +160,22 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
         print('Logout successful');
         await prefs.remove('jwt_token');
         Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen()),
-                );
+          context,
+          MaterialPageRoute(
+              builder: (context) => const WelcomeScreen()),
+        );
       } else {
         print('Error: ${data['message']}');
       }
     } else {
       print('Failed to logout: Server responded with status code ${response.statusCode}');
     }
+  }
+
+  Future<void> _refreshGuides() async {
+    setState(() {
+      futureGuides = fetchGuides();
+    });
   }
 
   @override
@@ -214,54 +228,57 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
           ],
         ),
       ),
-      body: FutureBuilder<List<Guide>>(
-        future: futureGuides,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No guides found'));
-          } else {
-            final guides = snapshot.data!;
-            return ListView(
-              children: guides.map((guide) {
-                return GuideCard(
-                  guideId: guide.userId,
-                  name: '${guide.name} ${guide.surname}',
-                  rating: guide.rating,
-                  reviews: guide.reviews,
-                  ratePerHour: guide.hourlyWage,
-                  images: guide.images,
-                  onTap: () async {
-                    // Save selected guide ID to JWT token
-                    final prefs = await SharedPreferences.getInstance();
-                    final token = prefs.getString('jwt_token');
-                    if (token != null) {
-                      try {
-                        final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
-                        jwt.payload['data']['selected_guide_id'] = guide.userId;
-                        final newToken = JWT(jwt.payload, header: jwt.header);
-                        final newTokenString = newToken.sign(SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
-                        await prefs.setString('jwt_token', newTokenString);
-                        print('New Token: $newTokenString'); // Debugging
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ReviewGuideProfileScreen(guideId: guide.userId)),
-                        );
-                      } catch (e) {
-                        print('Error modifying token: $e');
+      body: RefreshIndicator(
+        onRefresh: _refreshGuides,
+        child: FutureBuilder<List<Guide>>(
+          future: futureGuides,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No guides found'));
+            } else {
+              final guides = snapshot.data!;
+              return ListView(
+                children: guides.map((guide) {
+                  return GuideCard(
+                    guideId: guide.userId,
+                    name: '${guide.name} ${guide.surname}',
+                    rating: guide.rating,
+                    reviews: guide.reviews,
+                    ratePerHour: guide.hourlyWage,
+                    images: guide.images,
+                    onTap: () async {
+                      // Save selected guide ID to JWT token
+                      final prefs = await SharedPreferences.getInstance();
+                      final token = prefs.getString('jwt_token');
+                      if (token != null) {
+                        try {
+                          final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+                          jwt.payload['data']['selected_guide_id'] = guide.userId;
+                          final newToken = JWT(jwt.payload, header: jwt.header);
+                          final newTokenString = newToken.sign(SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+                          await prefs.setString('jwt_token', newTokenString);
+                          print('New Token: $newTokenString'); // Debugging
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ReviewGuideProfileScreen(guideId: guide.userId)),
+                          );
+                        } catch (e) {
+                          print('Error modifying token: $e');
+                        }
+                      } else {
+                        print('JWT token not found');
                       }
-                    } else {
-                      print('JWT token not found');
-                    }
-                  },
-                );
-              }).toList(),
-            );
-          }
-        },
+                    },
+                  );
+                }).toList(),
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

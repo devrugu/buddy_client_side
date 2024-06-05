@@ -27,13 +27,13 @@ class LoginScreenState extends State<LoginScreen> {
 
   Future<void> loginUser(String username, String password) async {
     final url = '$localUri/user/login.php';
-    print('Sending POST request to: $url'); // URL'yi loglayın
+    print('Sending POST request to: $url');
 
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Header ekleyin
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
           'username': username,
@@ -45,7 +45,7 @@ class LoginScreenState extends State<LoginScreen> {
       print('Response body: ${response.body}');
 
       final responseData =
-          json.decode(response.body); // Response'u JSON olarak decode edin.
+          json.decode(response.body);
 
       if (response.statusCode == 200) {
         if (!responseData['error']) {

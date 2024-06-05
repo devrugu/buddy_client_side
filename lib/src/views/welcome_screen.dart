@@ -57,7 +57,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
             );
           }
-          return; // Ensure we don't set _isCheckingLoginStatus to false if we navigated away
+          return;
         }
       }
     }

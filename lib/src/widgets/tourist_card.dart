@@ -1,5 +1,3 @@
-// tourist_card.dart
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +8,8 @@ class TouristCard extends StatefulWidget {
   final int reviews;
   final List<String> pictures;
   final VoidCallback onTap;
+  final bool serviceFinished;
+  final Widget? extraButton;
 
   const TouristCard({
     Key? key,
@@ -19,6 +19,8 @@ class TouristCard extends StatefulWidget {
     required this.reviews,
     required this.pictures,
     required this.onTap,
+    required this.serviceFinished,
+    this.extraButton,
   }) : super(key: key);
 
   @override
@@ -71,6 +73,25 @@ class TouristCardState extends State<TouristCard> {
                   ),
                   carouselController: _carouselController,
                 ),
+                Positioned(
+                  top: 8.0,
+                  right: 8.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Text(
+                      '${widget.rating} ★',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
             Row(
@@ -106,6 +127,17 @@ class TouristCardState extends State<TouristCard> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  widget.serviceFinished
+                      ? const Text(
+                          'Service Finished',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : widget.extraButton ?? Container(),
                 ],
               ),
             ),
@@ -132,11 +164,11 @@ class TouristCardState extends State<TouristCard> {
     return Row(
       children: List.generate(5, (index) {
         if (index < fullStars) {
-          return const Icon(Icons.star, color: Colors.amber, size: 20.0);
+          return const Icon(Icons.star, color: Colors.yellow, size: 20.0);
         } else if (index == fullStars && hasHalfStar) {
-          return const Icon(Icons.star_half, color: Colors.amber, size: 20.0);
+          return const Icon(Icons.star_half, color: Colors.yellow, size: 20.0);
         } else {
-          return const Icon(Icons.star_border, color: Colors.amber, size: 20.0);
+          return const Icon(Icons.star_border, color: Colors.yellow, size: 20.0);
         }
       }),
     );
