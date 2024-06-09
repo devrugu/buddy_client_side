@@ -135,35 +135,34 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
   }
 
   Future<List<TouristRequest>> fetchRequests(String status) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('jwt_token');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
 
-  if (token == null) {
-    throw Exception('JWT token not found');
-  }
-
-  final response = await http.get(
-    Uri.parse('$localUri/user/guide/tourist_requests.php?status=$status'),
-    headers: {
-      'Authorization': 'Bearer $token',
-    },
-  );
-
-  print('Response Body: ${response.body}'); // Add this line to inspect the response
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['error'] == false) {
-      final requests = data['requests'] as List;
-      return requests.map((request) => TouristRequest.fromJson(request)).toList();
-    } else {
-      throw Exception(data['message']);
+    if (token == null) {
+      throw Exception('JWT token not found');
     }
-  } else {
-    throw Exception('Failed to load requests');
-  }
-}
 
+    final response = await http.get(
+      Uri.parse('$localUri/user/guide/tourist_requests.php?status=$status'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('Response Body: ${response.body}'); // Add this line to inspect the response
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['error'] == false) {
+        final requests = data['requests'] as List;
+        return requests.map((request) => TouristRequest.fromJson(request)).toList();
+      } else {
+        throw Exception(data['message']);
+      }
+    } else {
+      throw Exception('Failed to load requests');
+    }
+  }
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -217,37 +216,36 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
   }
 
   Future<void> finishService(int touristId, int requestId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('jwt_token');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
 
-  if (token == null) {
-    throw Exception('JWT token not found');
-  }
-
-  final response = await http.post(
-    Uri.parse('$localUri/user/guide/finish_service.php'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({'tourist_id': touristId, 'request_id': requestId}),
-  );
-
-  print('Response Body: ${response.body}'); // Add this line to inspect the response
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['error'] == false) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
-      _refreshRequests();
-    } else {
-      throw Exception(data['message']);
+    if (token == null) {
+      throw Exception('JWT token not found');
     }
-  } else {
-    throw Exception('Failed to finish service');
-  }
-}
 
+    final response = await http.post(
+      Uri.parse('$localUri/user/guide/finish_service.php'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'tourist_id': touristId, 'request_id': requestId}),
+    );
+
+    print('Response Body: ${response.body}'); // Add this line to inspect the response
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['error'] == false) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(data['message'])));
+        _refreshRequests();
+      } else {
+        throw Exception(data['message']);
+      }
+    } else {
+      throw Exception('Failed to finish service');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -341,8 +339,8 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
                 return TouristCard(
                   touristId: request.touristId,
                   name: '${request.name} ${request.surname}',
-                  rating: request.rating,
-                  reviews: request.reviews,
+                  rating: request.rating == 0.0 ? null : request.rating,
+                  reviews: request.reviews == 0 ? null : request.reviews,
                   pictures: request.pictures,
                   serviceFinished: request.serviceFinished, // Pass the serviceFinished flag
                   onTap: () async {
@@ -412,8 +410,8 @@ class TouristRequest {
   final String name;
   final String surname;
   final String status;
-  final double rating;
-  final int reviews;
+  final double? rating;
+  final int? reviews;
   final List<String> pictures;
   final bool serviceFinished;
 
@@ -436,8 +434,8 @@ class TouristRequest {
       name: json['name'],
       surname: json['surname'],
       status: json['status'],
-      rating: json['rating'] != null ? double.parse(json['rating'].toString()) : 0.0,
-      reviews: json['reviews'] ?? 0,
+      rating: json['rating'] != null ? double.parse(json['rating'].toString()) : null,
+      reviews: json['reviews'],
       pictures: List<String>.from(json['pictures']),
       serviceFinished: json['service_finished'] == 1, // Convert 1 to true and 0 to false
     );

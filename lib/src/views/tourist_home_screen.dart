@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -238,7 +238,11 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No guides found'));
+              return ListView(
+                children: const [
+                  Center(child: Text('No guides found')),
+                ],
+              );
             } else {
               final guides = snapshot.data!;
               return ListView(
@@ -298,8 +302,8 @@ class Guide {
   final double latitude;
   final double longitude;
   final int countryId;
-  final double rating;
-  final int reviews;
+  final double? rating; // Updated to handle null
+  final int? reviews; // Updated to handle null
   final double hourlyWage;
   final List<String> images;
 
@@ -310,8 +314,8 @@ class Guide {
     required this.latitude,
     required this.longitude,
     required this.countryId,
-    required this.rating,
-    required this.reviews,
+    this.rating, // Updated to handle null
+    this.reviews, // Updated to handle null
     required this.hourlyWage,
     required this.images,
   });
@@ -324,8 +328,8 @@ class Guide {
       latitude: double.parse(json['latitude']),
       longitude: double.parse(json['longitude']),
       countryId: json['country_id'],
-      rating: double.parse(json['rating']),
-      reviews: json['reviews'],
+      rating: json['rating'] != null ? double.parse(json['rating']) : null, // Updated to handle null
+      reviews: json['reviews'], // Updated to handle null
       hourlyWage: double.parse(json['hourly_wage']),
       images: List<String>.from(json['images']),
     );

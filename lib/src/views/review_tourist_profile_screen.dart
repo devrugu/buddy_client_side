@@ -135,8 +135,8 @@ class ReviewTouristProfileScreenState extends State<ReviewTouristProfileScreen> 
       );
     } else {
       List<String> touristImages = List<String>.from(touristProfile!['images'] ?? []);
-      List<String> reviewTexts = touristProfile!['review_texts'].split('|||');
-      List<String> reviewRatings = touristProfile!['review_ratings'].split('|||');
+      List<String> reviewTexts = touristProfile!['review_texts']?.split('|||') ?? [];
+      List<String> reviewRatings = touristProfile!['review_ratings']?.split('|||') ?? [];
       return Scaffold(
         appBar: AppBar(title: Text('${touristProfile!['name']} ${touristProfile!['surname']}')),
         body: SingleChildScrollView(
@@ -152,7 +152,7 @@ class ReviewTouristProfileScreenState extends State<ReviewTouristProfileScreen> 
                           height: 300.0,
                           decoration: BoxDecoration(
                             image: DecorationImage(
-                              image: NetworkImage(imageUrl),
+                              image: NetworkImage('$localUri/uploads/tourist/$imageUrl'),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -228,7 +228,12 @@ class ReviewTouristProfileScreenState extends State<ReviewTouristProfileScreen> 
                     ],
                     ListTile(
                       title: const Text('Rating:'),
-                      subtitle: Text('${touristProfile!['average_rating']} (${touristProfile!['review_count']} reviews)'),
+                      subtitle: (touristProfile!['average_rating'] != null && touristProfile!['review_count'] != null && touristProfile!['review_count'] != 0)
+                          ? Text('${touristProfile!['average_rating']} (${touristProfile!['review_count']} reviews)')
+                          : const Text(
+                              'Has no reviews',
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     const Text(
@@ -236,16 +241,26 @@ class ReviewTouristProfileScreenState extends State<ReviewTouristProfileScreen> 
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Column(
-                      children: List.generate(reviewTexts.length, (index) {
-                        return ListTile(
-                          title: Text(reviewTexts[index]),
-                          subtitle: Row(
-                            children: List.generate(int.parse(reviewRatings[index]), (starIndex) {
-                              return const Icon(Icons.star, color: Colors.yellow, size: 20.0);
-                            }),
-                          ),
-                        );
-                      }),
+                      children: (reviewTexts.isNotEmpty)
+                          ? List.generate(reviewTexts.length, (index) {
+                              return ListTile(
+                                title: Text(reviewTexts[index]),
+                                subtitle: Row(
+                                  children: List.generate(int.parse(reviewRatings[index]), (starIndex) {
+                                    return const Icon(Icons.star, color: Colors.yellow, size: 20.0);
+                                  }),
+                                ),
+                              );
+                            })
+                          : [
+                              const ListTile(
+                                title: Text('No reviews yet.'),
+                                subtitle: Text(
+                                  'This tourist has not received any reviews.',
+                                  style: TextStyle(color: Colors.redAccent),
+                                ),
+                              ),
+                            ],
                     ),
                     const SizedBox(height: 20),
                     Row(

@@ -1,11 +1,13 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+import '../utilities/data_structures.dart'; // Make sure to import this
+
 class TouristCard extends StatefulWidget {
   final int touristId;
   final String name;
-  final double rating;
-  final int reviews;
+  final double? rating;
+  final int? reviews;
   final List<String> pictures;
   final VoidCallback onTap;
   final bool serviceFinished;
@@ -55,7 +57,7 @@ class TouristCardState extends State<TouristCard> {
                           topRight: Radius.circular(15.0),
                         ),
                         image: DecorationImage(
-                          image: NetworkImage(imageUrl),
+                          image: NetworkImage('$localUri/uploads/tourist/$imageUrl'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -83,9 +85,11 @@ class TouristCardState extends State<TouristCard> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: Text(
-                      '${widget.rating} ★',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      widget.rating != null 
+                        ? '${widget.rating} ★'
+                        : 'Has no reviews',
+                      style: TextStyle(
+                        color: widget.rating != null ? Colors.white : Colors.red.shade300,
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
@@ -146,9 +150,13 @@ class TouristCardState extends State<TouristCard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  buildRatingStars(widget.rating),
+                  widget.rating != null 
+                    ? buildRatingStars(widget.rating!)
+                    : Container(),
                   const SizedBox(width: 5.0),
-                  Text('(${widget.reviews} reviews)'),
+                  widget.reviews != null 
+                    ? Text('(${widget.reviews} reviews)')
+                    : Container(),
                 ],
               ),
             ),

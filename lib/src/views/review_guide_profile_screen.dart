@@ -88,8 +88,9 @@ class ReviewGuideProfileScreenState extends State<ReviewGuideProfileScreen> {
       );
     } else {
       List<String> guideImages = List<String>.from(guideProfile!['images'] ?? []);
-      List<String> reviewTexts = guideProfile!['review_texts'].split('|||');
-      List<String> reviewRatings = guideProfile!['review_ratings'].split('|||');
+      List<String> reviewTexts = guideProfile!['review_texts']?.split('|||') ?? [];
+      List<String> reviewRatings = guideProfile!['review_ratings']?.split('|||') ?? [];
+
       return Scaffold(
         appBar: AppBar(title: Text('${guideProfile!['name']} ${guideProfile!['surname']}')),
         body: SingleChildScrollView(
@@ -105,7 +106,7 @@ class ReviewGuideProfileScreenState extends State<ReviewGuideProfileScreen> {
                           height: 300.0,
                           decoration: BoxDecoration(
                             image: DecorationImage(
-                              image: NetworkImage(imageUrl),
+                              image: NetworkImage('$localUri/uploads/guide/$imageUrl'),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -181,25 +182,41 @@ class ReviewGuideProfileScreenState extends State<ReviewGuideProfileScreen> {
                     ],
                     ListTile(
                       title: const Text('Rating:'),
-                      subtitle: Text('${guideProfile!['average_rating']} (${guideProfile!['review_count']} reviews)'),
+                      subtitle: guideProfile!['average_rating'] != null 
+                        ? Text('${guideProfile!['average_rating']} (${guideProfile!['review_count']} reviews)')
+                        : Text(
+                            'Has no reviews',
+                            style: TextStyle(
+                              color: Colors.red.shade300,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                     ),
                     const SizedBox(height: 10),
                     const Text(
                       'Reviews:',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    Column(
-                      children: List.generate(reviewTexts.length, (index) {
-                        return ListTile(
-                          title: Text(reviewTexts[index]),
-                          subtitle: Row(
-                            children: List.generate(int.parse(reviewRatings[index]), (starIndex) {
-                              return const Icon(Icons.star, color: Colors.yellow, size: 20.0);
-                            }),
+                    guideProfile!['review_texts'] != null && guideProfile!['review_ratings'] != null 
+                      ? Column(
+                          children: List.generate(reviewTexts.length, (index) {
+                            return ListTile(
+                              title: Text(reviewTexts[index]),
+                              subtitle: Row(
+                                children: List.generate(int.parse(reviewRatings[index]), (starIndex) {
+                                  return const Icon(Icons.star, color: Colors.yellow, size: 20.0);
+                                }),
+                              ),
+                            );
+                          }),
+                        )
+                      : Text(
+                          'No reviews available',
+                          style: TextStyle(
+                            color: Colors.red.shade300,
+                            fontStyle: FontStyle.italic,
                           ),
-                        );
-                      }),
-                    ),
+                        ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: sendInvitation,

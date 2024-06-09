@@ -1,11 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import '../utilities/data_structures.dart'; // Make sure to import this
 
 class GuideCard extends StatefulWidget {
   final int guideId;
   final String name;
-  final double rating;
-  final int reviews;
+  final double? rating; // Updated to handle null
+  final int? reviews; // Updated to handle null
   final double ratePerHour;
   final List<String> images;
   final VoidCallback onTap;
@@ -14,8 +15,8 @@ class GuideCard extends StatefulWidget {
     super.key,
     required this.guideId,
     required this.name,
-    required this.rating,
-    required this.reviews,
+    this.rating, // Updated to handle null
+    this.reviews, // Updated to handle null
     required this.ratePerHour,
     required this.images,
     required this.onTap,
@@ -53,7 +54,7 @@ class GuideCardState extends State<GuideCard> {
                           topRight: Radius.circular(15.0),
                         ),
                         image: DecorationImage(
-                          image: NetworkImage(imageUrl),
+                          image: NetworkImage('$localUri/uploads/guide/$imageUrl'),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -133,9 +134,21 @@ class GuideCardState extends State<GuideCard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  buildRatingStars(widget.rating),
-                  const SizedBox(width: 5.0),
-                  Text('(${widget.reviews} reviews)'),
+                  widget.rating != null && widget.reviews != null
+                      ? Row(
+                          children: [
+                            buildRatingStars(widget.rating!),
+                            const SizedBox(width: 5.0),
+                            Text('(${widget.reviews} reviews)'),
+                          ],
+                        )
+                      : Text(
+                          'Has no reviews',
+                          style: TextStyle(
+                            color: Colors.red.shade300,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                 ],
               ),
             ),

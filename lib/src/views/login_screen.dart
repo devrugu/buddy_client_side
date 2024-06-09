@@ -11,6 +11,7 @@ import 'welcome_screen.dart';
 import 'activities_and_interests_screen.dart';
 import 'other_informations_screen.dart';
 import '../utilities/data_structures.dart';
+import 'hourly_wage_and_pictures_screen.dart';
 import 'tourist_home_screen.dart';
 import 'guide_home_screen.dart';
 
@@ -51,10 +52,9 @@ class LoginScreenState extends State<LoginScreen> {
         if (!responseData['error']) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('jwt_token', responseData['token']);
-
+          final roleId = responseData['role_id'];
           if (responseData['profile_status']) {
-            final roleId = responseData['role_id'];
-            // TODO: Implement navigation to the appropriate home screen
+            //final roleId = responseData['role_id'];
             if (roleId == 1) {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) => const TouristHomeScreen(),
@@ -72,11 +72,30 @@ class LoginScreenState extends State<LoginScreen> {
                 builder: (context) =>
                     ActivitiesAndInterestsScreen(missingInfo: missingInfo),
               ));
-            } else {
+            } else if (missingInfo.contains('professions') || 
+                missingInfo.contains('educationlevels') ||
+                missingInfo.contains('languages') ||
+                missingInfo.contains('locations')) {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
                 builder: (context) =>
                     OtherInformationsScreen(missingInfo: missingInfo),
               ));
+            } else {
+              if (roleId == 2) {
+                  if (missingInfo.contains('profiles') || missingInfo.contains('pictures')){
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    HourlyWageAndPicturesScreen(missingInfo: missingInfo),
+                ));
+                }
+              } else if (roleId == 1) {
+                if (missingInfo.contains('pictures')){
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    HourlyWageAndPicturesScreen(missingInfo: missingInfo),
+                ));
+                }
+              }
             }
           }
         } else {

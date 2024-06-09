@@ -8,69 +8,59 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../utilities/data_structures.dart';
 import '../widgets/warning_messages.dart';
+import 'hourly_wage_and_pictures_screen.dart';
 import 'tourist_home_screen.dart';
 import 'guide_home_screen.dart';
 
 class OtherInformationsScreen extends StatefulWidget {
-  final dynamic missingInfo; // Eksik bilgileri tutacak değişken
-  const OtherInformationsScreen({Key? key, required this.missingInfo})
-      : super(key: key);
+  final dynamic missingInfo;
+  const OtherInformationsScreen({Key? key, required this.missingInfo}) : super(key: key);
 
   @override
-  State<OtherInformationsScreen> createState() =>
-      OtherInformationsScreenState();
+  State<OtherInformationsScreen> createState() => OtherInformationsScreenState();
 }
 
 class OtherInformationsScreenState extends State<OtherInformationsScreen> {
-  // Kullanıcı seçimlerini tutacak değişkenler
-  String? selectedEducationLevelId; // Seçilen eğitim seviyesinin ID'si
-  List<dynamic> educationLevels = []; // Eğitim seviyelerinin listesi
+  String? selectedEducationLevelId;
+  List<dynamic> educationLevels = [];
 
-  List<dynamic> languages = []; // Dillerin listesi
-  Map<String, int> selectedLanguages = {}; // Seçilen diller ve seviyeleri
-  String languageLevel = 'beginner'; // Varsayılan dil seviyesi
+  List<dynamic> languages = [];
+  Map<String, int> selectedLanguages = {};
+  String languageLevel = 'beginner';
 
-  String? selectedLocationId; // Seçilen konumun ID'si
-  List<dynamic> locations = []; // Konumların listesi
+  String? selectedLocationId;
+  List<dynamic> locations = [];
 
-  List<dynamic> professions = []; // Mesleklerin listesi
-  Map<String, String> selectedProfessions =
-      {}; // Seçilen meslekler ve tecrübe yılları
+  List<dynamic> professions = [];
+  Map<String, String> selectedProfessions = {};
 
   @override
   void initState() {
     super.initState();
-    // İlk veri yüklemelerini burada başlatabilirsiniz
-    fetchEducationLevels(); // Eğitim seviyelerini çek
-    fetchLanguages(); // Dilleri çek
-    fetchLocations(); // Konumları çek
-    fetchProfessions(); // Meslekleri çek
+    fetchEducationLevels();
+    fetchLanguages();
+    fetchLocations();
+    fetchProfessions();
   }
 
   Future<void> fetchEducationLevels() async {
-    final response =
-        await http.get(Uri.parse('$localUri/general/education_levels.php'));
-
+    final response = await http.get(Uri.parse('$localUri/general/education_levels.php'));
     if (response.statusCode == 200) {
       setState(() {
         educationLevels = json.decode(response.body);
       });
     } else {
-      // Hata yönetimi
       print('Failed to load education levels');
     }
   }
 
   Future<void> fetchLanguages() async {
-    final response =
-        await http.get(Uri.parse('$localUri/general/languages.php'));
-
+    final response = await http.get(Uri.parse('$localUri/general/languages.php'));
     if (response.statusCode == 200) {
       setState(() {
         languages = json.decode(response.body);
       });
     } else {
-      // Hata yönetimi
       print('Failed to load languages');
     }
   }
@@ -79,8 +69,7 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
-    final response =
-        await http.get(Uri.parse('$localUri/general/locations.php'), headers: {
+    final response = await http.get(Uri.parse('$localUri/general/locations.php'), headers: {
       "Content-Type": "application/json",
       "Authorization": "Bearer $token",
     });
@@ -94,17 +83,13 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
     }
   }
 
-  // Meslekleri çeken fonksiyon
   Future<void> fetchProfessions() async {
-    final response =
-        await http.get(Uri.parse('$localUri/general/professions.php'));
-
+    final response = await http.get(Uri.parse('$localUri/general/professions.php'));
     if (response.statusCode == 200) {
       setState(() {
         professions = json.decode(response.body);
       });
     } else {
-      // Hata yönetimi
       print('Failed to load professions');
     }
   }
@@ -143,8 +128,7 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(
-              left: 8.0, bottom: 8.0), // İstenirse sağlanabilir.
+          padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
           child: Text(
             'Select your education level:',
             style: Theme.of(context)
@@ -158,17 +142,15 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
           dropdownColor: Colors.blue,
           iconEnabledColor: Colors.blue,
           decoration: InputDecoration(
-            // Eğer kenarlık eğimini de istiyorsanız, aşağıdaki gibi borderRadius kullanabilirsiniz.
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
             focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.blue),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           ),
-          isExpanded: true, // Dropdown'ın genişliğini ayarlar
+          isExpanded: true,
           value: selectedEducationLevelId,
           hint: const Text('Education level'),
           onChanged: (newValue) {
@@ -179,9 +161,7 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
           items: educationLevels.map<DropdownMenuItem<String>>((level) {
             return DropdownMenuItem<String>(
               value: level['education_level_id'].toString(),
-              child: Text(
-                level['education_level_name'],
-              ),
+              child: Text(level['education_level_name']),
             );
           }).toList(),
         ),
@@ -191,16 +171,12 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
 
   Widget buildLanguageSelector() {
     TextEditingController languageController = TextEditingController();
-
-    // Dil seviyelerini sayısal değerlere eşleyen bir Map
     Map<String, int> languageLevels = {
       'beginner': 1,
       'intermediate': 2,
       'advanced': 3,
       'native': 4,
     };
-
-    // Sayısal değerlerden metin karşılıklarına dönüştürmek için bir map
     Map<int, String> languageLevelNames = {
       1: 'beginner',
       2: 'intermediate',
@@ -383,7 +359,7 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
 
   Widget buildProfessionSelector() {
     TextEditingController professionController = TextEditingController();
-    String experienceLevel = '0'; // Varsayılan olarak 'under 1 year'
+    String experienceLevel = '0';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,14 +404,14 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
                           });
                         },
                         items: <String>[
-                          '0', // under 1 year
-                          '1', // 1 year
-                          '2', // 2 years
-                          '3', // 3 years
-                          '4', // 4 years
-                          '5', // 5 years
-                          '6', // 6 years
-                          '7', // over 6 years
+                          '0',
+                          '1',
+                          '2',
+                          '3',
+                          '4',
+                          '5',
+                          '6',
+                          '7',
                         ].map<DropdownMenuItem<String>>((String value) {
                           String textValue = value == '0'
                               ? 'under 1 year'
@@ -518,7 +494,6 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
         ElevatedButton(
           onPressed: () {
             submitSelections();
-            // TODO: Redirect to the home page
             navigateToNextOrHomeScreen();
           },
           style: ElevatedButton.styleFrom(
@@ -571,15 +546,12 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(response.body);
         if (jsonResponse['status'] == 'error') {
-          // Eğer bir hata varsa kullanıcıya hata mesajı göster
           WarningMessages.error(
               context, "Errors: ${jsonResponse['errors'].join(', ')}");
         } else {
-          // Başarılı işlem sonrası ana sayfaya yönlendir
           navigateToNextOrHomeScreen();
         }
       } else {
-        // Sunucu tarafında bir hata oluştuysa kullanıcıya bilgi ver
         WarningMessages.error(context,
             "Failed to submit selections: Server responded with status code ${response.statusCode}");
       }
@@ -599,8 +571,13 @@ class OtherInformationsScreenState extends State<OtherInformationsScreen> {
         final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
         final roleId = jwt.payload['data']['role_id'];
 
-        // TODO: Implement navigation to the appropriate home screen
-        if (roleId == 1) {
+        if (widget.missingInfo.contains('profiles') || widget.missingInfo.contains('pictures')) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => HourlyWageAndPicturesScreen(missingInfo: widget.missingInfo),
+            ),
+          );
+        } else if (roleId == 1) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
           );

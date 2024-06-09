@@ -12,15 +12,18 @@ import 'login_screen.dart';
 import '../widgets/custom_button.dart';
 import 'register_tourist_screen.dart';
 import 'register_guide_screen.dart';
+import 'activities_and_interests_screen.dart';
+import 'hourly_wage_and_pictures_screen.dart';
+import 'other_informations_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
-  _WelcomeScreenState createState() => _WelcomeScreenState();
+  WelcomeScreenState createState() => WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class WelcomeScreenState extends State<WelcomeScreen> {
   bool _isCheckingLoginStatus = true;
 
   @override
@@ -41,21 +44,68 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           'Content-Type': 'application/json',
         },
       );
+      print(token);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['error'] == false) {
           final roleId = data['role_id'];
-          if (roleId == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
-            );
-          } else if (roleId == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
-            );
+          final profileStatus = data['profile_status'] ?? false;
+          final missingInfo = data['missing_info'] ?? [];
+
+          if (profileStatus) {
+            if (roleId == 1) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const TouristHomeScreen()),
+              );
+            } else if (roleId == 2) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const GuideHomeScreen()),
+              );
+            }
+          } else {
+            if (missingInfo.contains('activities') ||
+                missingInfo.contains('interests')) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ActivitiesAndInterestsScreen(missingInfo: missingInfo),
+                ),
+              );
+            } else if (missingInfo.contains('educationlevels') ||
+                missingInfo.contains('languages') ||
+                missingInfo.contains('locations') ||
+                missingInfo.contains('professions')) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      OtherInformationsScreen(missingInfo: missingInfo),
+                ),
+              );
+            } else {
+              if (roleId == 2) {
+                  if (missingInfo.contains('profiles') || missingInfo.contains('pictures')){
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    HourlyWageAndPicturesScreen(missingInfo: missingInfo),
+                ));
+                }
+              } else if (roleId == 1) {
+                if (missingInfo.contains('pictures')){
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (context) =>
+                    HourlyWageAndPicturesScreen(missingInfo: missingInfo),
+                ));
+                }
+              }
+              
+            }
           }
           return;
         }

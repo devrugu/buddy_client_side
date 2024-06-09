@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import 'other_informations_screen.dart';
+import 'hourly_wage_and_pictures_screen.dart';
 import '../utilities/data_structures.dart';
 import '../widgets/warning_messages.dart';
 import 'tourist_home_screen.dart';
@@ -320,39 +321,45 @@ class ActivitiesAndInterestsScreenState
         widget.missingInfo.contains('languages') ||
         widget.missingInfo.contains('locations') ||
         widget.missingInfo.contains('professions')) {
-      // Diğer bilgi eksiklikleri için yönlendirme
       Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) =>
               OtherInformationsScreen(missingInfo: widget.missingInfo)));
+    } else if (widget.missingInfo.contains('profiles') || widget.missingInfo.contains('pictures')) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HourlyWageAndPicturesScreen(missingInfo: widget.missingInfo),
+        ),
+      );
     } else {
-      // Bilgi eksikliği yoksa ana sayfaya yönlendirme
       SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('jwt_token');
+      String? token = prefs.getString('jwt_token');
 
-    if (token != null) {
-      try {
-        final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
-        final roleId = jwt.payload['data']['role_id'];
-
-        // TODO: Implement navigation to the appropriate home screen
-        if (roleId == 1) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const TouristHomeScreen()),
-          );
-        } else if (roleId == 2) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const GuideHomeScreen()),
-          );
-        } else {
-          WarningMessages.error(context, 'Invalid role ID');
+      if (token != null) {
+        try {
+          final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+          final roleId = jwt.payload['data']['role_id'];
+          if (roleId == 1) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const TouristHomeScreen(),
+              ),
+            );
+          } else if (roleId == 2) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const GuideHomeScreen(),
+              ),
+            );
+          } else {
+            WarningMessages.error(context, 'Invalid role ID');
+          }
+        } catch (e) {
+          print('Error decoding token: $e');
+          WarningMessages.error(context, 'Invalid token. Please log in again.');
         }
-      } catch (e) {
-        print('Error decoding token: $e');
-        WarningMessages.error(context, 'Invalid token. Please log in again.');
+      } else {
+        WarningMessages.error(context, 'Token not found. Please log in again.');
       }
-    } else {
-      WarningMessages.error(context, 'Token not found. Please log in again.');
-    }
     }
   }
 }
