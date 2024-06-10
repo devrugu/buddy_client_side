@@ -14,6 +14,7 @@ import 'settings_screen.dart';
 import '../widgets/guide_card.dart';
 import 'travel_diary_screen.dart';
 import 'welcome_screen.dart';
+import 'filter_pane.dart';
 
 class TouristHomeScreen extends StatefulWidget {
   const TouristHomeScreen({super.key});
@@ -24,6 +25,7 @@ class TouristHomeScreen extends StatefulWidget {
 
 class TouristHomeScreenState extends State<TouristHomeScreen> {
   late Future<List<Guide>> futureGuides;
+  Map<String, dynamic> appliedFilters = {};
 
   @override
   void initState() {
@@ -104,7 +106,7 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
     }
   }
 
-  Future<List<Guide>> fetchGuides() async {
+  Future<List<Guide>> fetchGuides({Map<String, dynamic>? filters}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwt_token');
     print('Token in fetchGuides: $token'); // Debugging
@@ -113,11 +115,13 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
       throw Exception('JWT token not found');
     }
 
-    final response = await http.get(
+    final response = await http.post(
       Uri.parse('$localUri/user/tourist/recommend_guides.php'),
       headers: {
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
+      body: jsonEncode(filters ?? {}),
     );
 
     print('Response Status Code: ${response.statusCode}');
@@ -175,6 +179,34 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
 
   Future<void> _refreshGuides() async {
     setState(() {
+      futureGuides = fetchGuides(filters: appliedFilters);
+    });
+  }
+
+  void _openFilterPane() async {
+  final result = await showDialog<Map<String, dynamic>>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        child: FilterPane(
+          initialFilters: appliedFilters,
+        ),
+      );
+    },
+  );
+
+  if (result != null) {
+    setState(() {
+      appliedFilters = result;
+      futureGuides = fetchGuides(filters: appliedFilters);
+    });
+  }
+}
+
+
+  void _clearFilters() {
+    setState(() {
+      appliedFilters = {};
       futureGuides = fetchGuides();
     });
   }
@@ -256,49 +288,67 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
               );
             } else {
               final guides = snapshot.data!;
-              return ListView(
-                children: guides.map((guide) {
-                  return GuideCard(
-                    guideId: guide.userId,
-                    name: '${guide.name} ${guide.surname}',
-                    rating: guide.rating,
-                    reviews: guide.reviews,
-                    ratePerHour: guide.hourlyWage,
-                    images: guide.images,
-                    onTap: () async {
-                      // Save selected guide ID to JWT token
-                      final prefs = await SharedPreferences.getInstance();
-                      final token = prefs.getString('jwt_token');
-                      if (token != null) {
-                        try {
-                          final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
-                          jwt.payload['data']['selected_guide_id'] = guide.userId;
-                          final newToken = JWT(jwt.payload, header: jwt.header);
-                          final newTokenString = newToken.sign(SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
-                          await prefs.setString('jwt_token', newTokenString);
-                          print('New Token: $newTokenString'); // Debugging
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ReviewGuideProfileScreen(guideId: guide.userId)),
-                          );
-                        } catch (e) {
-                          print('Error modifying token: $e');
-                        }
-                      } else {
-                        print('JWT token not found');
-                      }
-                    },
-                  );
-                }).toList(),
+              return Column(
+                children: [
+                  if (appliedFilters.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Filters applied', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextButton(
+                            onPressed: _clearFilters,
+                            child: const Text('Clear Filters', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: ListView(
+                      children: guides.map((guide) {
+                        return GuideCard(
+                          guideId: guide.userId,
+                          name: '${guide.name} ${guide.surname}',
+                          rating: guide.rating,
+                          reviews: guide.reviews,
+                          ratePerHour: guide.hourlyWage,
+                          images: guide.images,
+                          onTap: () async {
+                            // Save selected guide ID to JWT token
+                            final prefs = await SharedPreferences.getInstance();
+                            final token = prefs.getString('jwt_token');
+                            if (token != null) {
+                              try {
+                                final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+                                jwt.payload['data']['selected_guide_id'] = guide.userId;
+                                final newToken = JWT(jwt.payload, header: jwt.header);
+                                final newTokenString = newToken.sign(SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+                                await prefs.setString('jwt_token', newTokenString);
+                                print('New Token: $newTokenString'); // Debugging
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ReviewGuideProfileScreen(guideId: guide.userId)),
+                                );
+                              } catch (e) {
+                                print('Error modifying token: $e');
+                              }
+                            } else {
+                              print('JWT token not found');
+                            }
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
               );
             }
           },
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // This will be implemented later
-        },
+        onPressed: _openFilterPane,
         label: const Text('Find Your Guide'),
         icon: const Icon(Icons.search),
       ),
