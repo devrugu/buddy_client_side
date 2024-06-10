@@ -14,6 +14,7 @@ import 'chat_screen.dart';
 import 'guide_profile_screen.dart';
 import 'settings_screen.dart';
 import 'welcome_screen.dart';
+import 'travel_diary_screen.dart';
 import '../widgets/tourist_card.dart';
 
 class GuideHomeScreen extends StatefulWidget {
@@ -284,6 +285,16 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
                   context,
                   MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 ); */
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.book),
+              title: const Text('Travel Diary'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TravelDiaryScreen()),
+                );
               },
             ),
             ListTile(

@@ -12,6 +12,7 @@ import 'review_guide_profile_screen.dart';
 import 'tourist_profile_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/guide_card.dart';
+import 'travel_diary_screen.dart';
 import 'welcome_screen.dart';
 
 class TouristHomeScreen extends StatefulWidget {
@@ -204,6 +205,16 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.book),
+              title: const Text('Travel Diary'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TravelDiaryScreen()),
                 );
               },
             ),
