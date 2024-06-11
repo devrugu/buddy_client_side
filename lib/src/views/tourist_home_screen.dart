@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../utilities/data_structures.dart';
+import 'messages_screen.dart';
 import 'review_guide_profile_screen.dart';
 import 'tourist_profile_screen.dart';
 import 'settings_screen.dart';
@@ -250,6 +251,24 @@ class TouristHomeScreenState extends State<TouristHomeScreen> {
                 );
               },
             ),
+            ListTile(
+  leading: const Icon(Icons.chat),
+  title: const Text('Messages'),
+  onTap: () async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    if (token != null) {
+      final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+      final userId = jwt.payload['data']['user_id'];
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MessagesScreen(userId: userId)),
+      );
+    } else {
+      print('JWT token not found');
+    }
+  },
+),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),

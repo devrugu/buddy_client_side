@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../utilities/data_structures.dart';
+import 'messages_screen.dart';
 import 'review_tourist_profile_screen.dart';
 import 'chat_screen.dart';
 import 'guide_profile_screen.dart';
@@ -298,6 +299,25 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
               },
             ),
             ListTile(
+  leading: const Icon(Icons.chat),
+  title: const Text('Messages'),
+  onTap: () async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    if (token != null) {
+      final jwt = JWT.verify(token, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+      final userId = jwt.payload['data']['user_id'];
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MessagesScreen(userId: userId)),
+      );
+    } else {
+      print('JWT token not found');
+    }
+  },
+),
+
+            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
@@ -364,12 +384,15 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
                         ),
                       );
                     } else if (status == 'accepted') {
-                      /* Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(touristId: request.touristId),
-                        ),
-                      ); */
+                      // TODO: Navigate to chat screen between guide(token-->user_id) and tourist(request.touristId)
+                      final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwt_token');
+                      final jwt = JWT.verify(token!, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+        final userId = jwt.payload['data']['user_id'];
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ChatScreen(userId: userId, receiverId: request.touristId)),
+        );
                     }
                   },
                   extraButton: status == 'accepted' && !request.serviceFinished

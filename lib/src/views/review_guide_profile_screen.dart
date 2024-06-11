@@ -2,12 +2,14 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utilities/data_structures.dart';
+import 'chat_screen.dart';
 
 class ReviewGuideProfileScreen extends StatefulWidget {
   final int guideId;
@@ -54,30 +56,36 @@ class ReviewGuideProfileScreenState extends State<ReviewGuideProfileScreen> {
   }
 
   sendInvitation() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('jwt_token');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwt_token');
 
-    final response = await http.post(
-      Uri.parse('$localUri/user/tourist/send_invitation.php'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'receiver_id': widget.guideId.toString(),
-      }),
-    );
-    if (response.statusCode == 200) {
-      final result = json.decode(response.body);
-      if (result['error'] == false) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
-      }
+  final response = await http.post(
+    Uri.parse('$localUri/user/tourist/send_invitation.php'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'receiver_id': widget.guideId.toString(),
+    }),
+  );
+  if (response.statusCode == 200) {
+    final result = json.decode(response.body);
+    if (result['error'] == false) {
+      final jwt = JWT.verify(token!, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+      final userId = jwt.payload['data']['user_id'];
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatScreen(userId: userId, receiverId: widget.guideId)),
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error sending invitation')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error sending invitation')));
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

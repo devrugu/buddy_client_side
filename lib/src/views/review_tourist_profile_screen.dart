@@ -2,6 +2,7 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -55,43 +56,43 @@ class ReviewTouristProfileScreenState extends State<ReviewTouristProfileScreen> 
   }
 
   acceptRequest() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('jwt_token');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwt_token');
 
-    try {
-      final response = await http.post(
-        Uri.parse('$localUri/user/guide/respond_request.php'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'status': 'accepted',
-        }),
-      );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      if (response.statusCode == 200) {
-        final result = json.decode(response.body);
-        if (result['error'] == false) {
-          // TODO: Navigate to chat screen
-          /*Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(touristId: widget.touristId),
-            ),
-          );*/
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
-        }
+  try {
+    final response = await http.post(
+      Uri.parse('$localUri/user/guide/respond_request.php'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'status': 'accepted',
+      }),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      final result = json.decode(response.body);
+      if (result['error'] == false) {
+        final jwt = JWT.verify(token!, SecretKey('d98088e564499fd3c0f6b7865aa79b282401825355fdae75078fdfa0818c889f'));
+        final userId = jwt.payload['data']['user_id'];
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ChatScreen(userId: userId, receiverId: widget.touristId)),
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error accepting request')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
       }
-    } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error processing request')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error accepting request')));
     }
+  } catch (e) {
+    print('Error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error processing request')));
   }
+}
+
 
   denyRequest() async {
     final prefs = await SharedPreferences.getInstance();
