@@ -12,7 +12,7 @@ import '../utilities/data_structures.dart';
 import 'messages_screen.dart';
 import 'review_tourist_profile_screen.dart';
 import 'chat_screen.dart';
-import 'guide_profile_screen.dart';
+import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'welcome_screen.dart';
 import 'travel_diary_screen.dart';
@@ -282,10 +282,10 @@ class GuideHomeScreenState extends State<GuideHomeScreen> with SingleTickerProvi
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
               onTap: () {
-                /* Navigator.push(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                ); */
+                );
               },
             ),
             ListTile(

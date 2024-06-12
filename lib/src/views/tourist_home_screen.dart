@@ -10,7 +10,7 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../utilities/data_structures.dart';
 import 'messages_screen.dart';
 import 'review_guide_profile_screen.dart';
-import 'tourist_profile_screen.dart';
+import 'profile_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/guide_card.dart';
 import 'travel_diary_screen.dart';
